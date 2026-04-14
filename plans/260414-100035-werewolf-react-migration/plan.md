@@ -1,5 +1,5 @@
 ---
-status: phases-1-8-complete
+status: complete
 created: 2026-04-14
 priority: high
 blockedBy: []
@@ -30,19 +30,19 @@ Production-grade werewolf moderator: React+TypeScript, Vite, Tailwind v4, Zustan
 
 ## Phases
 
-| #   | Phase                                                     | Status  | Est. Files | Key Output                                             |
-| --- | --------------------------------------------------------- | ------- | ---------- | ------------------------------------------------------ |
-| 1   | [Project Setup](phase-01-project-setup.md)                | done    | 8 config   | Vite+TS+Tailwind v4+PWA+i18n+test scaffold             |
-| 2   | [Types & Data](phase-02-types-and-data.md)                | done    | 4          | Types, 32 roles, theme, i18n strings                   |
-| 3   | [Utility Layer](phase-03-utility-layer.md)                | done    | 4          | Sounds (MP3), timer hook                               |
-| 4   | [Common Components](phase-04-common-components.md)        | done    | 3          | BottomSheet (responsive), ErrorBoundary, SelectorModal |
-| 5   | [Game State Store](phase-05-game-state-store.md)          | done    | 3          | Zustand store + actions + selectors                    |
-| 6   | [Setup Screen](phase-06-setup-screen.md)                  | done    | 5          | Full setup flow                                        |
-| 7a  | [Game Screen Core](phase-07a-game-screen-core.md)         | done    | 3          | game-screen, player-card, timer-board                  |
-| 7b  | [Game Screen Sheets](phase-07b-game-screen-sheets.md)     | done    | 3          | assign-role, skill, player-action sheets               |
-| 7c  | [Game Screen Settings](phase-07c-game-screen-settings.md) | done    | 3          | history, night-confirm, settings sheets                |
-| 8   | [Integration & Polish](phase-08-integration-polish.md)    | done    | 2          | App.tsx, main.tsx, PWA, Cloudflare deploy              |
-| 9   | [Testing](phase-09-testing.md)                            | pending | 5-8        | Unit + integration + E2E tests                         |
+| #   | Phase                                                     | Status | Est. Files | Key Output                                                            |
+| --- | --------------------------------------------------------- | ------ | ---------- | --------------------------------------------------------------------- |
+| 1   | [Project Setup](phase-01-project-setup.md)                | done   | 8 config   | Vite+TS+Tailwind v4+PWA+i18n+test scaffold                            |
+| 2   | [Types & Data](phase-02-types-and-data.md)                | done   | 4          | Types, 32 roles, theme, i18n strings                                  |
+| 3   | [Utility Layer](phase-03-utility-layer.md)                | done   | 4          | Sounds (MP3), timer hook                                              |
+| 4   | [Common Components](phase-04-common-components.md)        | done   | 3          | BottomSheet (responsive), ErrorBoundary, SelectorModal                |
+| 5   | [Game State Store](phase-05-game-state-store.md)          | done   | 3          | Zustand store + actions + selectors                                   |
+| 6   | [Setup Screen](phase-06-setup-screen.md)                  | done   | 5          | Full setup flow                                                       |
+| 7a  | [Game Screen Core](phase-07a-game-screen-core.md)         | done   | 3          | game-screen, player-card, timer-board                                 |
+| 7b  | [Game Screen Sheets](phase-07b-game-screen-sheets.md)     | done   | 3          | assign-role, skill, player-action sheets                              |
+| 7c  | [Game Screen Settings](phase-07c-game-screen-settings.md) | done   | 3          | history, night-confirm, settings sheets                               |
+| 8   | [Integration & Polish](phase-08-integration-polish.md)    | done   | 2          | App.tsx, main.tsx, PWA, Cloudflare deploy                             |
+| 9   | [Testing](phase-09-testing.md)                            | done   | 5-8        | Unit (109) + integration (48) + E2E (13) tests — 170 total, 100% pass |
 
 ## Architecture
 

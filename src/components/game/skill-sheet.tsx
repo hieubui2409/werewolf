@@ -159,26 +159,42 @@ export function SkillSheet({ isOpen, onClose }: SkillSheetProps) {
                 </button>
                 {isExpanded && (
                   <div className="p-3 space-y-2 bg-gray-50 dark:bg-slate-800/50">
-                    {role.abilities.map((ab) => (
-                      <button
-                        key={ab.id}
-                        onClick={() => selectAbility(ab, role.id)}
-                        className={`w-full text-left px-3 py-2 rounded-lg border transition active:scale-[0.98] bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600`}
-                      >
-                        <span className="font-bold text-sm text-gray-800 dark:text-white">
-                          {tr(t, ab.nameKey, ab.name)}
-                        </span>
-                        <span className="ml-2 text-[10px] text-gray-400 dark:text-slate-400">
-                          {ab.type === "nightly" ? (
-                            <i className="fas fa-moon" />
-                          ) : (
-                            `${ab.max}x`
-                          )}{" "}
-                          <i className="fas fa-crosshairs ml-1" />{" "}
-                          {ab.targetCount}
-                        </span>
-                      </button>
-                    ))}
+                    {role.abilities.map((ab) => {
+                      const assigned = players.filter(
+                        (p) => p.roleId === role.id,
+                      );
+                      const allExhausted =
+                        ab.type === "limited" &&
+                        assigned.length > 0 &&
+                        assigned.every(
+                          (p) => (p.abilityUsage[ab.id] || 0) >= ab.max,
+                        );
+                      return (
+                        <button
+                          key={ab.id}
+                          onClick={() =>
+                            !allExhausted && selectAbility(ab, role.id)
+                          }
+                          disabled={allExhausted}
+                          className={`w-full text-left px-3 py-2 rounded-lg border transition active:scale-[0.98] ${allExhausted ? "opacity-40 cursor-not-allowed bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700" : "bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600"}`}
+                        >
+                          <span
+                            className={`font-bold text-sm ${allExhausted ? "text-gray-400 dark:text-slate-500 line-through" : "text-gray-800 dark:text-white"}`}
+                          >
+                            {tr(t, ab.nameKey, ab.name)}
+                          </span>
+                          <span className="ml-2 text-[10px] text-gray-400 dark:text-slate-400">
+                            {ab.type === "nightly" ? (
+                              <i className="fas fa-moon" />
+                            ) : (
+                              `${ab.max}x`
+                            )}{" "}
+                            <i className="fas fa-crosshairs ml-1" />{" "}
+                            {ab.targetCount}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>

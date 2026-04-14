@@ -1,6 +1,6 @@
 ---
 phase: 8
-status: pending
+status: done
 priority: high
 effort: small
 ---

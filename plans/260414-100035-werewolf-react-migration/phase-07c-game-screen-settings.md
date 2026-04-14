@@ -1,6 +1,6 @@
 ---
 phase: 7c
-status: pending
+status: done
 priority: medium
 effort: small
 ---

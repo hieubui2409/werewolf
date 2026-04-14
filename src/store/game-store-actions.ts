@@ -142,6 +142,15 @@ export function executeAction(
   faction: Faction,
   nightCount: number,
 ): { players: Player[]; actionLog: ActionLog[] } {
+  // Validate limited ability usage
+  if (ability.type === "limited") {
+    const source = players.find((p) => p.id === sourceId);
+    const currentCount = source?.abilityUsage[ability.id] || 0;
+    if (currentCount >= ability.max) {
+      return { players, actionLog };
+    }
+  }
+
   const newPlayers = players.map((p) => {
     if (p.id === sourceId) {
       const currentCount = p.abilityUsage[ability.id] || 0;

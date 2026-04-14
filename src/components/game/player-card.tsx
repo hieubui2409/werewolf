@@ -20,6 +20,16 @@ interface PlayerCardProps {
   onUndoAction: (actionId: string, e: React.MouseEvent) => void;
 }
 
+function DeathWatermark() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+      <i className="fas fa-skull-crossbones text-red-500/25 text-6xl" />
+    </div>
+  );
+}
+
+const MAX_VISIBLE_CHIPS = 2;
+
 function ActionChips({
   actions,
   onUndoAction,
@@ -29,31 +39,65 @@ function ActionChips({
 }) {
   const { t } = useTranslation();
   if (actions.length === 0) return null;
+
+  const hasOverflow = actions.length > MAX_VISIBLE_CHIPS;
+
   return (
     <div
-      className="mt-auto flex flex-wrap gap-1 w-full"
+      className="mt-auto pt-2 flex flex-wrap md:justify-center gap-1 w-full"
       onClick={(e) => e.stopPropagation()}
     >
-      {actions.map((action) => {
-        const col = getFactionStyle(action.faction);
-        const name = tr(t, action.abilityNameKey, action.abilityName);
-        return (
-          <button
-            key={action.id}
-            onClick={(e) => onUndoAction(action.id, e)}
-            className={`text-[9px] px-2 py-1 rounded-md border-b-2 flex items-center gap-1 w-full md:w-auto justify-between ${col.bgLight} ${col.borderSolid} text-white shadow-sm`}
-            aria-label={`Undo ${name}`}
-          >
-            <span className="flex items-center gap-1 truncate">
-              {action.abilityType === "limited" && (
-                <i className="fas fa-lock text-[8px] opacity-70" />
-              )}
-              <span className="truncate font-bold tracking-wide">{name}</span>
-            </span>
-            <i className="fas fa-times opacity-50" />
-          </button>
-        );
-      })}
+      {/* Landscape: show all */}
+      <div className="hidden md:contents">
+        {actions.map((action) => {
+          const col = getFactionStyle(action.faction);
+          const name = tr(t, action.abilityNameKey, action.abilityName);
+          return (
+            <button
+              key={action.id}
+              onClick={(e) => onUndoAction(action.id, e)}
+              className={`text-[9px] px-2 py-1 rounded-md border-b-2 flex items-center gap-1 md:w-auto justify-between ${col.bgLight} ${col.borderSolid} text-white shadow-sm`}
+            >
+              <span className="flex items-center gap-1 truncate">
+                {action.abilityType === "limited" && (
+                  <i className="fas fa-lock text-[8px] opacity-70" />
+                )}
+                <span className="truncate font-bold tracking-wide">{name}</span>
+              </span>
+              <i className="fas fa-times opacity-50" />
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Portrait: max chips, last one faded if overflow */}
+      <div className="contents md:hidden">
+        {actions.slice(0, MAX_VISIBLE_CHIPS).map((action, idx) => {
+          const col = getFactionStyle(action.faction);
+          const name = tr(t, action.abilityNameKey, action.abilityName);
+          const isLast = hasOverflow && idx === MAX_VISIBLE_CHIPS - 1;
+          return (
+            <button
+              key={action.id}
+              onClick={(e) => onUndoAction(action.id, e)}
+              className={`text-[9px] px-2 py-1 rounded-md border-b-2 flex items-center gap-1 w-full justify-between ${col.bgLight} ${col.borderSolid} text-white shadow-sm ${isLast ? "opacity-40" : ""}`}
+            >
+              <span className="flex items-center gap-1 truncate">
+                {action.abilityType === "limited" && (
+                  <i className="fas fa-lock text-[8px] opacity-70" />
+                )}
+                <span className="truncate font-bold tracking-wide">{name}</span>
+              </span>
+              <i className="fas fa-times opacity-50" />
+            </button>
+          );
+        })}
+        {hasOverflow && (
+          <div className="text-[9px] text-white/30 font-bold w-full text-center">
+            +{actions.length - MAX_VISIBLE_CHIPS}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -83,8 +127,9 @@ export const PlayerCard = memo(function PlayerCard({
     return (
       <div className="w-full h-44">
         <div
-          className={`w-full h-full p-3 flex flex-col rounded-2xl relative border-l-4 border overflow-y-auto hide-scrollbar ${col.borderSolid} bg-white dark:bg-slate-900 shadow-sm ${!player.alive ? "dead-card" : ""}`}
+          className={`w-full h-full p-3 flex flex-col rounded-2xl relative border-l-4 border ${col.borderSolid} bg-white dark:bg-slate-900 shadow-sm overflow-y-auto hide-scrollbar card-pattern-${faction} ${!player.alive ? "dead-card" : ""}`}
         >
+          {!player.alive && <DeathWatermark />}
           <div className="flex justify-between items-center mb-2">
             <span className="bg-gray-200 dark:bg-black/30 text-gray-700 dark:text-white w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0">
               {player.id}
@@ -102,17 +147,17 @@ export const PlayerCard = memo(function PlayerCard({
               <i className="fas fa-ellipsis-v" />
             </button>
           </div>
-          <div className="font-black text-lg text-gray-900 dark:text-white truncate px-1 text-center mb-3">
+          <div className="font-black text-lg text-gray-900 dark:text-white truncate px-1 text-center mb-5">
             {player.name}
           </div>
           {!isVillager && abilities.length > 0 && (
-            <div className="flex flex-col md:flex-row md:flex-wrap gap-1 mb-3">
+            <div className="flex flex-col md:flex-row md:flex-wrap md:justify-center gap-1 mb-3">
               {abilities.map((ab) => {
                 const used = player.abilityUsage[ab.id] || 0;
                 return (
                   <div
                     key={ab.id}
-                    className="text-[9px] font-bold border border-dashed border-gray-400 dark:border-white/30 rounded-lg bg-transparent py-1 px-1.5 flex justify-between items-center text-gray-700 dark:text-white/80 w-full md:w-auto"
+                    className="text-[9px] font-bold border border-dashed border-gray-400 dark:border-white/30 rounded-lg bg-transparent py-1 px-1.5 flex justify-between md:justify-center items-center gap-1 text-gray-700 dark:text-white/80 w-full md:w-auto"
                   >
                     <span className="truncate max-w-[70%]">
                       {tr(t, ab.nameKey, ab.name)}
@@ -138,17 +183,13 @@ export const PlayerCard = memo(function PlayerCard({
   // Name face (front)
   const nameFace = (
     <div
-      className={`flip-face p-3 bg-white dark:bg-slate-900 border-l-4 ${col.borderSolid} border border-gray-200 dark:border-slate-700 rounded-xl`}
+      className={`flip-face p-3 bg-white dark:bg-slate-900 border-l-4 ${col.borderSolid} border border-gray-200 dark:border-slate-700 rounded-xl card-pattern-mixed`}
     >
+      {!player.alive && <DeathWatermark />}
       <div className="flex justify-between items-start mb-2">
-        <div className="relative">
-          <span className="w-7 h-7 rounded-full flex items-center justify-center font-black text-sm bg-gray-200 dark:bg-black/30 text-gray-700 dark:text-white">
-            {player.id}
-          </span>
-          {!player.alive && (
-            <i className="fas fa-skull text-red-400 text-[10px] absolute -bottom-1 -right-1" />
-          )}
-        </div>
+        <span className="w-7 h-7 rounded-full flex items-center justify-center font-black text-sm bg-gray-200 dark:bg-black/30 text-gray-700 dark:text-white">
+          {player.id}
+        </span>
       </div>
       <div className="text-center mt-auto mb-auto">
         <div className="font-black text-xl truncate px-1 text-gray-900 dark:text-white">
@@ -169,8 +210,9 @@ export const PlayerCard = memo(function PlayerCard({
   // Role face (back)
   const roleFace = (
     <div
-      className={`flip-face flip-back p-2 ${col.bgLight} border-l-4 ${col.borderSolid} border border-gray-200 dark:border-slate-700 rounded-xl`}
+      className={`flip-face flip-back p-2 ${col.bgLight} border-l-4 ${col.borderSolid} border border-gray-200 dark:border-slate-700 rounded-xl card-pattern-${faction}`}
     >
+      {!player.alive && <DeathWatermark />}
       <div className="flex justify-between items-start">
         <span className="bg-gray-200 dark:bg-black/30 text-gray-600 dark:text-white/80 w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs">
           {player.id}
@@ -183,14 +225,14 @@ export const PlayerCard = memo(function PlayerCard({
           <i className="fas fa-ellipsis-v" />
         </button>
       </div>
-      <div className="text-center mt-1 mb-2">
+      <div className="text-center mt-1 mb-4">
         <div
           className={`font-black text-[15px] truncate px-1 uppercase tracking-widest ${col.textBright}`}
         >
           {roleName}
         </div>
       </div>
-      <div className="flex-1 flex flex-col md:flex-row md:flex-wrap justify-center text-center overflow-y-auto hide-scrollbar gap-1">
+      <div className="flex-1 flex flex-col md:flex-row md:flex-wrap md:justify-center justify-start text-center gap-1">
         {isVillager ? (
           <span className="text-[11px] text-gray-400 dark:text-white/50 italic font-bold">
             {t("game.noAbility", "Không kỹ năng")}
@@ -202,7 +244,7 @@ export const PlayerCard = memo(function PlayerCard({
             return (
               <div
                 key={ab.id}
-                className={`text-[10px] border border-dashed rounded-lg py-1 px-1.5 flex justify-between items-center font-bold w-full md:w-auto ${isDisabled ? "bg-transparent border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/40" : "bg-transparent border-gray-500 dark:border-white/40 text-gray-800 dark:text-white"}`}
+                className={`text-[10px] border border-dashed rounded-lg py-1 px-1.5 flex justify-between md:justify-center items-center gap-1 font-bold w-full md:w-auto ${isDisabled ? "bg-transparent border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/40" : "bg-transparent border-gray-500 dark:border-white/40 text-gray-800 dark:text-white"}`}
               >
                 <span className="truncate max-w-[65%]">
                   {tr(t, ab.nameKey, ab.name)}
