@@ -24,7 +24,8 @@
     "kill": "Giết",
     "revive": "Hồi sinh",
     "chooseSource": "Chọn người thực hiện",
-    "skip": "Bỏ qua"
+    "skip": "Bỏ qua",
+    "noAbility": "Không kỹ năng"
   },
   "roles": {
     "b_wolf": "Ma Sói",
@@ -59,6 +60,37 @@
     "a_half": "Bán Sói",
     "a_twins": "Cặp Sinh Đôi",
     "a_tanner": "Chán Đời"
+  },
+  "abilities": {
+    "bite": "Cắn",
+    "see": "Soi",
+    "protect": "Bảo vệ",
+    "heal": "Cứu",
+    "kill": "Giết",
+    "shoot": "Bắn",
+    "couple": "Ghép đôi",
+    "killWolf": "Giết Sói",
+    "infect": "Lây nhiễm",
+    "freeze": "Đóng băng",
+    "rageBite": "Cắn phẫn nộ",
+    "silence": "Câm lặng",
+    "see3": "Soi 3 người",
+    "askRole": "Hỏi vai trò",
+    "revokeVote": "Tước biểu quyết",
+    "hypnotize": "Thôi miên",
+    "stealRole": "Trộm Role",
+    "assassinate": "Ám sát",
+    "recruit": "Kết nạp",
+    "nurture": "Nuôi dưỡng",
+    "extraLives": "Nhiều mạng"
+  },
+  "library": {
+    "basicVillager": "Dân Cơ Bản",
+    "basicWolf": "Sói Cơ Bản",
+    "advancedVillager": "Dân Nâng Cao",
+    "advancedWolf": "Sói Nâng Cao",
+    "thirdParty": "Phe Thứ 3",
+    "custom": "Tuỳ Chỉnh"
   },
   "settings": {
     "cardView": "Chế độ xem thẻ",

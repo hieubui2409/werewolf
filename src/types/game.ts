@@ -6,6 +6,7 @@ export type CardViewMode = "nameFirst" | "roleFirst" | "both";
 export interface Ability {
   id: string;
   name: string;
+  nameKey?: string; // i18n key: "abilities.bite"
   type: AbilityType;
   max: number; // 0 = unlimited (nightly)
   targetCount: number;
@@ -26,6 +27,7 @@ export interface GameRole {
   id: string; // unique instance ID
   templateId: string;
   name: string;
+  nameKey?: string; // i18n key: "roles.b_wolf"
   order: number;
   faction: Faction;
   abilities: Ability[]; // deep copy from template
@@ -47,6 +49,7 @@ export interface ActionLog {
   targetId: number;
   abilityId: string;
   abilityName: string;
+  abilityNameKey?: string; // i18n key
   abilityType: AbilityType;
   faction: Faction;
 }

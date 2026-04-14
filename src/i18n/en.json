@@ -24,7 +24,8 @@
     "kill": "Kill",
     "revive": "Revive",
     "chooseSource": "Choose performer",
-    "skip": "Skip"
+    "skip": "Skip",
+    "noAbility": "No abilities"
   },
   "roles": {
     "b_wolf": "Werewolf",
@@ -59,6 +60,37 @@
     "a_half": "Half Wolf",
     "a_twins": "Twins",
     "a_tanner": "Tanner"
+  },
+  "abilities": {
+    "bite": "Bite",
+    "see": "See",
+    "protect": "Protect",
+    "heal": "Heal",
+    "kill": "Kill",
+    "shoot": "Shoot",
+    "couple": "Couple",
+    "killWolf": "Kill Wolf",
+    "infect": "Infect",
+    "freeze": "Freeze",
+    "rageBite": "Rage Bite",
+    "silence": "Silence",
+    "see3": "See 3 Players",
+    "askRole": "Ask Role",
+    "revokeVote": "Revoke Vote",
+    "hypnotize": "Hypnotize",
+    "stealRole": "Steal Role",
+    "assassinate": "Assassinate",
+    "recruit": "Recruit",
+    "nurture": "Nurture",
+    "extraLives": "Extra Lives"
+  },
+  "library": {
+    "basicVillager": "Basic Villager",
+    "basicWolf": "Basic Wolf",
+    "advancedVillager": "Advanced Villager",
+    "advancedWolf": "Advanced Wolf",
+    "thirdParty": "Third Party",
+    "custom": "Custom"
   },
   "settings": {
     "cardView": "Card View Mode",

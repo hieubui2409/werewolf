@@ -4,6 +4,7 @@ import { useGameStore } from "../../store/game-store";
 import { useSortedRoles } from "../../store/game-store-selectors";
 import { BottomSheet } from "../common/bottom-sheet";
 import { getFactionStyle } from "../../utils/faction-theme";
+import { tr } from "../../utils/i18n-helpers";
 
 interface AssignRoleSheetProps {
   isOpen: boolean;
@@ -48,7 +49,7 @@ export function AssignRoleSheet({ isOpen, onClose }: AssignRoleSheetProps) {
                     {role.order}
                   </span>
                   <span className={`font-bold ${style.textBright}`}>
-                    {role.name}
+                    {tr(t, role.nameKey, role.name)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

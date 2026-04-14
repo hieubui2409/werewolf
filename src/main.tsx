@@ -6,8 +6,8 @@ import App from "./App.tsx";
 import { preloadSounds } from "./utils/sounds";
 import { registerSW } from "virtual:pwa-register";
 
-// Preload sounds
-preloadSounds();
+// Preload sounds after initial render
+requestIdleCallback(() => preloadSounds());
 
 // PWA: prompt-to-reload
 const updateSW = registerSW({

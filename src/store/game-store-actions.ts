@@ -23,21 +23,25 @@ export function createInitialPlayers(count: number): Player[] {
 
 // Helper: create initial roles from template IDs
 export function createInitialRoles(): GameRole[] {
-  return INITIAL_ROLE_IDS.map((tid, idx) => {
-    const tpl = DEFAULT_ROLES.find((r) => r.id === tid);
-    if (!tpl) return null;
-    return {
-      id: `init_${Date.now()}_${idx}`,
-      templateId: tpl.id,
-      name: tpl.name,
-      order: tpl.order,
-      faction: tpl.faction,
-      abilities: tpl.abilities.map((a) => ({
-        ...a,
-        id: `ab_${Math.random().toString(36).slice(2, 9)}`,
-      })),
-    };
-  }).filter((r): r is GameRole => r !== null);
+  const templates = INITIAL_ROLE_IDS.map((tid) =>
+    DEFAULT_ROLES.find((r) => r.id === tid),
+  ).filter((tpl): tpl is RoleTemplate => tpl !== null);
+
+  // Sort by template order to get correct game-flow sequence, then assign sequential numbers
+  const sorted = [...templates].sort((a, b) => a.order - b.order);
+
+  return sorted.map<GameRole>((tpl, idx) => ({
+    id: `init_${Date.now()}_${idx}`,
+    templateId: tpl.id,
+    name: tpl.name,
+    nameKey: tpl.nameKey,
+    order: idx + 1,
+    faction: tpl.faction,
+    abilities: tpl.abilities.map((a) => ({
+      ...a,
+      id: `ab_${Math.random().toString(36).slice(2, 9)}`,
+    })),
+  }));
 }
 
 // Generate unique ID (counter avoids collision on rapid clicks)
@@ -75,7 +79,8 @@ export function addRoleFromTemplate(
     id: uid(),
     templateId: template.id,
     name: template.name,
-    order: template.order,
+    nameKey: template.nameKey,
+    order: roles.length + 1,
     faction: template.faction,
     abilities: template.abilities.map((a) => ({
       ...a,
@@ -134,10 +139,9 @@ export function executeAction(
   sourceId: number,
   ability: Ability,
   targets: number[],
-  _roleId: string,
+  faction: Faction,
   nightCount: number,
 ): { players: Player[]; actionLog: ActionLog[] } {
-  const role = { faction: "villager" as Faction }; // Will be resolved by caller
   const newPlayers = players.map((p) => {
     if (p.id === sourceId) {
       const currentCount = p.abilityUsage[ability.id] || 0;
@@ -158,8 +162,9 @@ export function executeAction(
     targetId,
     abilityId: ability.id,
     abilityName: ability.name,
+    abilityNameKey: ability.nameKey,
     abilityType: ability.type,
-    faction: role.faction,
+    faction,
   }));
 
   return {
@@ -176,7 +181,7 @@ export function undoAction(
   const actionToUndo = actionLog.find((a) => a.id === actionId);
   if (!actionToUndo) return { players, actionLog };
 
-  // Only decrement usage if this is the last action in its execution group
+  // Decrement usage only when removing the last action in its execution group
   const sameExecution = actionLog.filter(
     (a) => a.executionId === actionToUndo.executionId,
   );

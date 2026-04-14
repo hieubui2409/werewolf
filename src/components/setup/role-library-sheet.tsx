@@ -13,37 +13,37 @@ interface RoleLibrarySheetProps {
 const GROUPS: {
   category: Category;
   faction: Faction;
-  label: string;
+  labelKey: string;
   color: string;
 }[] = [
   {
     category: "basic",
     faction: "villager",
-    label: "Dân Cơ Bản",
+    labelKey: "library.basicVillager",
     color: "text-blue-400",
   },
   {
     category: "basic",
     faction: "wolf",
-    label: "Sói Cơ Bản",
+    labelKey: "library.basicWolf",
     color: "text-red-400",
   },
   {
     category: "advanced",
     faction: "villager",
-    label: "Dân Nâng Cao",
+    labelKey: "library.advancedVillager",
     color: "text-blue-300",
   },
   {
     category: "advanced",
     faction: "wolf",
-    label: "Sói Nâng Cao",
+    labelKey: "library.advancedWolf",
     color: "text-red-300",
   },
   {
     category: "advanced",
     faction: "third",
-    label: "Phe Thứ 3",
+    labelKey: "library.thirdParty",
     color: "text-purple-400",
   },
 ];
@@ -78,7 +78,7 @@ export function RoleLibrarySheet({
       </button>
 
       {/* Role groups */}
-      {GROUPS.map(({ category, faction, label, color }) => {
+      {GROUPS.map(({ category, faction, labelKey, color }) => {
         const list = roleTemplates.filter(
           (r) => r.category === category && r.faction === faction,
         );
@@ -88,7 +88,7 @@ export function RoleLibrarySheet({
             <h4
               className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${color}`}
             >
-              {label}
+              {t(labelKey)}
             </h4>
             <div className="space-y-1.5">
               {list.map((tpl) => {
@@ -128,7 +128,7 @@ export function RoleLibrarySheet({
       {customTemplates.length > 0 && (
         <div className="mb-4">
           <h4 className="text-[10px] font-bold uppercase tracking-widest mb-2 text-amber-400">
-            Custom
+            {t("library.custom")}
           </h4>
           <div className="space-y-1.5">
             {customTemplates.map((tpl) => {

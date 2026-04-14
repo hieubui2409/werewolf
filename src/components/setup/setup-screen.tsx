@@ -5,6 +5,7 @@ import { PlayerConfig } from "./player-config";
 import { RoleList } from "./role-list";
 import { RoleLibrarySheet } from "./role-library-sheet";
 import { CreateRoleSheet } from "./create-role-sheet";
+import { SettingsSheet } from "../game/settings-sheet";
 import { SelectorModal, type SelectorConfig } from "../common/selector-modal";
 
 export function SetupScreen() {
@@ -17,6 +18,7 @@ export function SetupScreen() {
 
   const [showLibrary, setShowLibrary] = useState(false);
   const [showCreateRole, setShowCreateRole] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [activeSelector, setActiveSelector] = useState<SelectorConfig | null>(
     null,
   );
@@ -43,11 +45,19 @@ export function SetupScreen() {
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 pb-8">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-4 text-center sticky top-0 z-10">
+      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-4 sticky top-0 z-10 flex items-center justify-between">
+        <div className="w-10" />
         <h1 className="text-2xl font-black font-['Bungee'] uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
           <i className="fas fa-moon mr-2 opacity-80" />
           {t("setup.title")}
         </h1>
+        <button
+          onClick={() => setShowSettings(true)}
+          className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition"
+          aria-label={t("settings.title")}
+        >
+          <i className="fas fa-cog text-lg" />
+        </button>
       </div>
 
       {/* Content — responsive 2-panel on tablet */}
@@ -99,6 +109,10 @@ export function SetupScreen() {
       <CreateRoleSheet
         isOpen={showCreateRole}
         onClose={() => setShowCreateRole(false)}
+      />
+      <SettingsSheet
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
       />
       {activeSelector && (
         <SelectorModal

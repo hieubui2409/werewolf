@@ -61,11 +61,13 @@ export function GameScreen() {
         settings={timerSettings}
         nightCount={nightCount}
         onOpenModal={openModal}
+        onOpenAssign={() => setModal("assign")}
+        onOpenSkill={() => setModal("skill")}
       />
 
       {/* Main player grid */}
-      <main className="flex-1 overflow-y-auto p-3 md:p-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+      <main className="flex-1 overflow-y-auto min-h-0 p-2 md:p-4 pb-20 md:pb-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 items-start content-start">
           {sortedPlayers.map((player) => (
             <PlayerCard
               key={player.id}
@@ -82,20 +84,20 @@ export function GameScreen() {
         </div>
       </main>
 
-      {/* Floating action buttons */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-4 z-20 md:static md:translate-x-0 md:flex-col md:absolute md:bottom-4 md:left-4 md:gap-3">
+      {/* Action buttons — fixed bottom on mobile, sidebar bottom on desktop */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-20 md:hidden">
         <button
           onClick={() => setModal("assign")}
-          className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-black rounded-full shadow-[0_5px_15px_rgba(16,185,129,0.4)] active:scale-95 transition uppercase text-sm"
+          className="px-5 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-black rounded-2xl shadow-[0_5px_15px_rgba(16,185,129,0.4)] active:scale-95 transition uppercase text-xs"
         >
-          <i className="fas fa-theater-masks mr-2" />
+          <i className="fas fa-theater-masks mr-1.5" />
           {t("game.assignRole")}
         </button>
         <button
           onClick={() => setModal("skill")}
-          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black rounded-full shadow-[0_5px_15px_rgba(99,102,241,0.4)] active:scale-95 transition uppercase text-sm"
+          className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black rounded-2xl shadow-[0_5px_15px_rgba(99,102,241,0.4)] active:scale-95 transition uppercase text-xs"
         >
-          <i className="fas fa-wand-sparkles mr-2" />
+          <i className="fas fa-wand-sparkles mr-1.5" />
           {t("game.useSkill")}
         </button>
       </div>

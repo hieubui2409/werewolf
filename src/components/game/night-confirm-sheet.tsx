@@ -21,10 +21,7 @@ export function NightConfirmSheet({ isOpen, onClose }: NightConfirmSheetProps) {
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} icon="fa-moon">
-      <div
-        role="alertdialog"
-        aria-label={t("game.endTurn", { count: nightCount })}
-      >
+      <div aria-label={t("game.endTurn", { count: nightCount })}>
         <p className="text-center text-xl font-black text-gray-800 dark:text-white mb-6">
           {t("game.endTurn", { count: nightCount })}
         </p>

@@ -4,6 +4,7 @@ import { useGameStore } from "../../store/game-store";
 import { useSortedRoles } from "../../store/game-store-selectors";
 import { BottomSheet } from "../common/bottom-sheet";
 import { getFactionStyle } from "../../utils/faction-theme";
+import { tr } from "../../utils/i18n-helpers";
 import type { Ability } from "../../types/game";
 
 interface SkillSheetProps {
@@ -120,9 +121,7 @@ export function SkillSheet({ isOpen, onClose }: SkillSheetProps) {
           {sortedRoles.map((role) => {
             if (role.abilities.length === 0) return null;
             const style = getFactionStyle(role.faction);
-            const assigned = players.filter(
-              (p) => p.roleId === role.id && p.alive,
-            );
+            const allAssigned = players.filter((p) => p.roleId === role.id);
             const isExpanded = expandedRoleId === role.id;
             return (
               <div
@@ -135,10 +134,27 @@ export function SkillSheet({ isOpen, onClose }: SkillSheetProps) {
                   aria-expanded={isExpanded}
                 >
                   <span className={`font-bold ${style.textBright}`}>
-                    {role.name}
+                    {tr(t, role.nameKey, role.name)}
                   </span>
                   <span className="text-[10px] text-gray-400 dark:text-slate-500">
-                    {assigned.map((p) => p.name).join(", ") || "—"}
+                    {allAssigned.length > 0
+                      ? allAssigned
+                          .map((p) => (
+                            <span
+                              key={p.id}
+                              className={
+                                !p.alive ? "line-through opacity-50" : ""
+                              }
+                            >
+                              {p.name}
+                            </span>
+                          ))
+                          .reduce<React.ReactNode[]>(
+                            (acc, el, i) =>
+                              i === 0 ? [el] : [...acc, ", ", el],
+                            [],
+                          )
+                      : "—"}
                   </span>
                 </button>
                 {isExpanded && (
@@ -150,7 +166,7 @@ export function SkillSheet({ isOpen, onClose }: SkillSheetProps) {
                         className={`w-full text-left px-3 py-2 rounded-lg border transition active:scale-[0.98] bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600`}
                       >
                         <span className="font-bold text-sm text-gray-800 dark:text-white">
-                          {ab.name}
+                          {tr(t, ab.nameKey, ab.name)}
                         </span>
                         <span className="ml-2 text-[10px] text-gray-400 dark:text-slate-400">
                           {ab.type === "nightly" ? (

@@ -10,7 +10,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "basic",
     faction: "wolf",
     abilities: [
-      { id: "a1", name: "Cắn", type: "nightly", max: 0, targetCount: 1 },
+      {
+        id: "a1",
+        name: "Cắn",
+        nameKey: "abilities.bite",
+        type: "nightly",
+        max: 0,
+        targetCount: 1,
+      },
     ],
   },
   {
@@ -21,7 +28,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "basic",
     faction: "villager",
     abilities: [
-      { id: "a2", name: "Soi", type: "nightly", max: 0, targetCount: 1 },
+      {
+        id: "a2",
+        name: "Soi",
+        nameKey: "abilities.see",
+        type: "nightly",
+        max: 0,
+        targetCount: 1,
+      },
     ],
   },
   {
@@ -32,7 +46,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "basic",
     faction: "villager",
     abilities: [
-      { id: "a3", name: "Bảo vệ", type: "nightly", max: 0, targetCount: 1 },
+      {
+        id: "a3",
+        name: "Bảo vệ",
+        nameKey: "abilities.protect",
+        type: "nightly",
+        max: 0,
+        targetCount: 1,
+      },
     ],
   },
   {
@@ -43,8 +64,22 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "basic",
     faction: "villager",
     abilities: [
-      { id: "a4", name: "Cứu", type: "limited", max: 1, targetCount: 1 },
-      { id: "a5", name: "Giết", type: "limited", max: 1, targetCount: 1 },
+      {
+        id: "a4",
+        name: "Cứu",
+        nameKey: "abilities.heal",
+        type: "limited",
+        max: 1,
+        targetCount: 1,
+      },
+      {
+        id: "a5",
+        name: "Giết",
+        nameKey: "abilities.kill",
+        type: "limited",
+        max: 1,
+        targetCount: 1,
+      },
     ],
   },
   {
@@ -55,7 +90,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "basic",
     faction: "villager",
     abilities: [
-      { id: "a6", name: "Bắn", type: "limited", max: 1, targetCount: 1 },
+      {
+        id: "a6",
+        name: "Bắn",
+        nameKey: "abilities.shoot",
+        type: "limited",
+        max: 1,
+        targetCount: 1,
+      },
     ],
   },
   {
@@ -66,7 +108,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "basic",
     faction: "villager",
     abilities: [
-      { id: "a7", name: "Ghép đôi", type: "limited", max: 1, targetCount: 2 },
+      {
+        id: "a7",
+        name: "Ghép đôi",
+        nameKey: "abilities.couple",
+        type: "limited",
+        max: 1,
+        targetCount: 2,
+      },
     ],
   },
   {
@@ -97,7 +146,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "advanced",
     faction: "wolf",
     abilities: [
-      { id: "a8", name: "Giết Sói", type: "limited", max: 2, targetCount: 1 },
+      {
+        id: "a8",
+        name: "Giết Sói",
+        nameKey: "abilities.killWolf",
+        type: "limited",
+        max: 2,
+        targetCount: 1,
+      },
     ],
   },
   {
@@ -108,7 +164,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "advanced",
     faction: "wolf",
     abilities: [
-      { id: "a9", name: "Soi", type: "nightly", max: 0, targetCount: 1 },
+      {
+        id: "a9",
+        name: "Soi",
+        nameKey: "abilities.see",
+        type: "nightly",
+        max: 0,
+        targetCount: 1,
+      },
     ],
   },
   {
@@ -119,7 +182,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "advanced",
     faction: "wolf",
     abilities: [
-      { id: "a10", name: "Lây nhiễm", type: "limited", max: 1, targetCount: 1 },
+      {
+        id: "a10",
+        name: "Lây nhiễm",
+        nameKey: "abilities.infect",
+        type: "limited",
+        max: 1,
+        targetCount: 1,
+      },
     ],
   },
   {
@@ -130,7 +200,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "advanced",
     faction: "wolf",
     abilities: [
-      { id: "a11", name: "Đóng băng", type: "nightly", max: 0, targetCount: 1 },
+      {
+        id: "a11",
+        name: "Đóng băng",
+        nameKey: "abilities.freeze",
+        type: "nightly",
+        max: 0,
+        targetCount: 1,
+      },
     ],
   },
   {
@@ -144,6 +221,7 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
       {
         id: "a22",
         name: "Cắn phẫn nộ",
+        nameKey: "abilities.rageBite",
         type: "limited",
         max: 1,
         targetCount: 1,
@@ -169,7 +247,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "advanced",
     faction: "villager",
     abilities: [
-      { id: "a12", name: "Câm lặng", type: "nightly", max: 0, targetCount: 1 },
+      {
+        id: "a12",
+        name: "Câm lặng",
+        nameKey: "abilities.silence",
+        type: "nightly",
+        max: 0,
+        targetCount: 1,
+      },
     ],
   },
   {
@@ -183,6 +268,7 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
       {
         id: "a13",
         name: "Soi 3 người",
+        nameKey: "abilities.see3",
         type: "nightly",
         max: 0,
         targetCount: 3,
@@ -200,6 +286,7 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
       {
         id: "a14",
         name: "Hỏi vai trò",
+        nameKey: "abilities.askRole",
         type: "nightly",
         max: 0,
         targetCount: 1,
@@ -217,6 +304,7 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
       {
         id: "a15",
         name: "Tước biểu quyết",
+        nameKey: "abilities.revokeVote",
         type: "nightly",
         max: 0,
         targetCount: 1,
@@ -261,6 +349,7 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
       {
         id: "a20",
         name: "Nuôi dưỡng",
+        nameKey: "abilities.nurture",
         type: "limited",
         max: 1,
         targetCount: 1,
@@ -278,6 +367,7 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
       {
         id: "a21",
         name: "Nhiều mạng",
+        nameKey: "abilities.extraLives",
         type: "limited",
         max: 2,
         targetCount: 1,
@@ -303,7 +393,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "advanced",
     faction: "third",
     abilities: [
-      { id: "a16", name: "Thôi miên", type: "nightly", max: 0, targetCount: 2 },
+      {
+        id: "a16",
+        name: "Thôi miên",
+        nameKey: "abilities.hypnotize",
+        type: "nightly",
+        max: 0,
+        targetCount: 2,
+      },
     ],
   },
   {
@@ -314,7 +411,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "advanced",
     faction: "third",
     abilities: [
-      { id: "a17", name: "Trộm Role", type: "limited", max: 1, targetCount: 1 },
+      {
+        id: "a17",
+        name: "Trộm Role",
+        nameKey: "abilities.stealRole",
+        type: "limited",
+        max: 1,
+        targetCount: 1,
+      },
     ],
   },
   {
@@ -325,7 +429,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "advanced",
     faction: "third",
     abilities: [
-      { id: "a18", name: "Ám sát", type: "nightly", max: 0, targetCount: 1 },
+      {
+        id: "a18",
+        name: "Ám sát",
+        nameKey: "abilities.assassinate",
+        type: "nightly",
+        max: 0,
+        targetCount: 1,
+      },
     ],
   },
   {
@@ -336,7 +447,14 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
     category: "advanced",
     faction: "third",
     abilities: [
-      { id: "a19", name: "Kết nạp", type: "nightly", max: 0, targetCount: 1 },
+      {
+        id: "a19",
+        name: "Kết nạp",
+        nameKey: "abilities.recruit",
+        type: "nightly",
+        max: 0,
+        targetCount: 1,
+      },
     ],
   },
   {

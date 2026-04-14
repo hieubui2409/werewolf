@@ -26,7 +26,7 @@ export function PlayerActionSheet({
     <BottomSheet isOpen onClose={onClose} title={player.name} icon="fa-user">
       <div className="text-center py-4">
         <p className="text-sm text-gray-500 dark:text-slate-400 mb-2">
-          {role?.name || "Dân Làng"}
+          {role?.name || t("game.villager", "Dân Làng")}
         </p>
         <p
           className={`text-lg font-black uppercase tracking-widest mb-6 ${player.alive ? "text-emerald-500" : "text-red-500"}`}

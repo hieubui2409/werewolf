@@ -80,7 +80,7 @@ interface GameStore {
 
 export const useGameStore = create<GameStore>()(
   persist(
-    (set, _get) => ({
+    (set) => ({
       step: "setup",
       playerCount: 10,
       players: createInitialPlayers(10),
@@ -157,7 +157,7 @@ export const useGameStore = create<GameStore>()(
                   abilities: [
                     ...r.abilities,
                     {
-                      id: `ab_${Date.now()}`,
+                      id: `ab_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
                       name: "Kỹ năng",
                       type: "nightly" as const,
                       max: 1,
@@ -227,21 +227,16 @@ export const useGameStore = create<GameStore>()(
       executeAction: (sourceId, ability, targets, roleId) =>
         set((s) => {
           const role = s.roles.find((r) => r.id === roleId);
-          const result = calcExecuteAction(
+          const faction = role?.faction ?? "villager";
+          return calcExecuteAction(
             s.players,
             s.actionLog,
             sourceId,
             ability,
             targets,
-            roleId,
+            faction,
             s.nightCount,
           );
-          // Patch faction from actual role
-          const faction = role?.faction ?? "villager";
-          const patchedLog = result.actionLog.map((a) =>
-            a.faction === "villager" && role ? { ...a, faction } : a,
-          );
-          return { players: result.players, actionLog: patchedLog };
         }),
 
       undoAction: (actionId) =>
@@ -293,7 +288,7 @@ export const useGameStore = create<GameStore>()(
             alive: true,
             abilityUsage: {},
           })),
-          roles: [],
+          roles: createInitialRoles(),
           flippedCards: {},
         })),
 

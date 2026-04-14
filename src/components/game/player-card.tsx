@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useTranslation } from "react-i18next";
 import type {
   Player,
   GameRole,
@@ -6,6 +7,7 @@ import type {
   CardViewMode,
 } from "../../types/game";
 import { getFactionStyle } from "../../utils/faction-theme";
+import { tr } from "../../utils/i18n-helpers";
 
 interface PlayerCardProps {
   player: Player;
@@ -25,6 +27,7 @@ function ActionChips({
   actions: ActionLog[];
   onUndoAction: (id: string, e: React.MouseEvent) => void;
 }) {
+  const { t } = useTranslation();
   if (actions.length === 0) return null;
   return (
     <div
@@ -33,20 +36,19 @@ function ActionChips({
     >
       {actions.map((action) => {
         const col = getFactionStyle(action.faction);
+        const name = tr(t, action.abilityNameKey, action.abilityName);
         return (
           <button
             key={action.id}
             onClick={(e) => onUndoAction(action.id, e)}
-            className={`text-[9px] px-2 py-1 rounded-md border-b-2 flex items-center gap-1 w-full justify-between ${col.bgLight} ${col.borderSolid} text-white shadow-sm`}
-            aria-label={`Undo ${action.abilityName}`}
+            className={`text-[9px] px-2 py-1 rounded-md border-b-2 flex items-center gap-1 w-full md:w-auto justify-between ${col.bgLight} ${col.borderSolid} text-white shadow-sm`}
+            aria-label={`Undo ${name}`}
           >
             <span className="flex items-center gap-1 truncate">
               {action.abilityType === "limited" && (
                 <i className="fas fa-lock text-[8px] opacity-70" />
               )}
-              <span className="truncate font-bold tracking-wide">
-                {action.abilityName}
-              </span>
+              <span className="truncate font-bold tracking-wide">{name}</span>
             </span>
             <i className="fas fa-times opacity-50" />
           </button>
@@ -66,22 +68,22 @@ export const PlayerCard = memo(function PlayerCard({
   onSelect,
   onUndoAction,
 }: PlayerCardProps) {
+  const { t } = useTranslation();
   const isVillager = player.roleId === null;
-  const roleName = isVillager ? "Dân Làng" : role?.name || "Dân Làng";
+  const villagerLabel = t("game.villager", "Dân Làng");
+  const roleName = isVillager
+    ? villagerLabel
+    : tr(t, role?.nameKey, role?.name || villagerLabel);
   const abilities = role?.abilities || [];
-  const faction = player.alive
-    ? isVillager
-      ? "villager"
-      : role?.faction || "villager"
-    : "dead";
+  const faction = isVillager ? "villager" : role?.faction || "villager";
   const col = getFactionStyle(faction);
 
   // "both" mode — combined view, no flip
   if (viewMode === "both") {
     return (
-      <div className="w-full">
+      <div className="w-full h-44">
         <div
-          className={`w-full p-3 flex flex-col rounded-2xl relative border-l-4 border ${col.borderSolid} bg-white dark:bg-slate-900 shadow-sm`}
+          className={`w-full h-full p-3 flex flex-col rounded-2xl relative border-l-4 border overflow-y-auto hide-scrollbar ${col.borderSolid} bg-white dark:bg-slate-900 shadow-sm ${!player.alive ? "dead-card" : ""}`}
         >
           <div className="flex justify-between items-center mb-2">
             <span className="bg-gray-200 dark:bg-black/30 text-gray-700 dark:text-white w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0">
@@ -100,21 +102,21 @@ export const PlayerCard = memo(function PlayerCard({
               <i className="fas fa-ellipsis-v" />
             </button>
           </div>
-          <div
-            className={`font-black text-lg text-gray-900 dark:text-white truncate px-1 text-center mb-3 ${!player.alive ? "line-through opacity-50" : ""}`}
-          >
+          <div className="font-black text-lg text-gray-900 dark:text-white truncate px-1 text-center mb-3">
             {player.name}
           </div>
           {!isVillager && abilities.length > 0 && (
-            <div className="space-y-1.5 mb-3">
+            <div className="flex flex-col md:flex-row md:flex-wrap gap-1 mb-3">
               {abilities.map((ab) => {
                 const used = player.abilityUsage[ab.id] || 0;
                 return (
                   <div
                     key={ab.id}
-                    className="text-[9px] font-bold border-b-2 border-gray-200 dark:border-white/20 rounded-lg bg-gray-50 dark:bg-white/10 py-1 px-1.5 flex justify-between items-center text-gray-700 dark:text-white"
+                    className="text-[9px] font-bold border border-dashed border-gray-400 dark:border-white/30 rounded-lg bg-transparent py-1 px-1.5 flex justify-between items-center text-gray-700 dark:text-white/80 w-full md:w-auto"
                   >
-                    <span className="truncate max-w-[70%]">{ab.name}</span>
+                    <span className="truncate max-w-[70%]">
+                      {tr(t, ab.nameKey, ab.name)}
+                    </span>
                     <span className="bg-gray-200 dark:bg-black/30 px-1 rounded">
                       {ab.type === "limited" ? (
                         `${used}/${ab.max}`
@@ -139,15 +141,17 @@ export const PlayerCard = memo(function PlayerCard({
       className={`flip-face p-3 bg-white dark:bg-slate-900 border-l-4 ${col.borderSolid} border border-gray-200 dark:border-slate-700 rounded-xl`}
     >
       <div className="flex justify-between items-start mb-2">
-        <span className="w-7 h-7 rounded-full flex items-center justify-center font-black text-sm bg-gray-200 dark:bg-black/30 text-gray-700 dark:text-white">
-          {player.id}
-        </span>
-        {!player.alive && <i className="fas fa-skull text-red-400 text-xl" />}
+        <div className="relative">
+          <span className="w-7 h-7 rounded-full flex items-center justify-center font-black text-sm bg-gray-200 dark:bg-black/30 text-gray-700 dark:text-white">
+            {player.id}
+          </span>
+          {!player.alive && (
+            <i className="fas fa-skull text-red-400 text-[10px] absolute -bottom-1 -right-1" />
+          )}
+        </div>
       </div>
       <div className="text-center mt-auto mb-auto">
-        <div
-          className={`font-black text-xl truncate px-1 text-gray-900 dark:text-white ${!player.alive ? "line-through opacity-50" : ""}`}
-        >
+        <div className="font-black text-xl truncate px-1 text-gray-900 dark:text-white">
           {player.name}
         </div>
       </div>
@@ -186,10 +190,10 @@ export const PlayerCard = memo(function PlayerCard({
           {roleName}
         </div>
       </div>
-      <div className="flex-1 flex flex-col justify-center text-center overflow-y-auto hide-scrollbar space-y-1.5">
+      <div className="flex-1 flex flex-col md:flex-row md:flex-wrap justify-center text-center overflow-y-auto hide-scrollbar gap-1">
         {isVillager ? (
           <span className="text-[11px] text-gray-400 dark:text-white/50 italic font-bold">
-            Không kỹ năng
+            {t("game.noAbility", "Không kỹ năng")}
           </span>
         ) : (
           abilities.map((ab) => {
@@ -198,9 +202,11 @@ export const PlayerCard = memo(function PlayerCard({
             return (
               <div
                 key={ab.id}
-                className={`text-[10px] border-b-2 rounded-lg py-1 px-1.5 flex justify-between items-center font-bold ${isDisabled ? "bg-gray-200/50 dark:bg-black/40 border-gray-300 dark:border-black/50 text-gray-400 dark:text-white/40" : "bg-gray-100 dark:bg-white/10 border-gray-200 dark:border-white/20 text-gray-700 dark:text-white"}`}
+                className={`text-[10px] border border-dashed rounded-lg py-1 px-1.5 flex justify-between items-center font-bold w-full md:w-auto ${isDisabled ? "bg-transparent border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/40" : "bg-transparent border-gray-500 dark:border-white/40 text-gray-800 dark:text-white"}`}
               >
-                <span className="truncate max-w-[65%]">{ab.name}</span>
+                <span className="truncate max-w-[65%]">
+                  {tr(t, ab.nameKey, ab.name)}
+                </span>
                 <span className="opacity-90 bg-gray-200 dark:bg-black/30 px-1 rounded">
                   {ab.type === "limited" ? (
                     `${used}/${ab.max}`
@@ -217,13 +223,16 @@ export const PlayerCard = memo(function PlayerCard({
     </div>
   );
 
+  // XOR: roleFirst inverts the flip state
+  const showFlipped = viewMode === "roleFirst" ? !isFlipped : isFlipped;
+
   return (
     <div
-      className={`flip-container w-full h-36 cursor-pointer ${isFlipped ? "flipped" : ""}`}
+      className={`flip-container w-full h-44 cursor-pointer ${showFlipped ? "flipped" : ""} ${!player.alive ? "dead-card" : ""}`}
       onClick={() => onFlip(player.id)}
       role="button"
       aria-label={`${player.name} - ${roleName}`}
-      aria-expanded={isFlipped}
+      aria-expanded={showFlipped}
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {

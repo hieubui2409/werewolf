@@ -24,6 +24,7 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
   const { t } = useTranslation();
   const createCustomRole = useGameStore((s) => s.createCustomRole);
   const playerCount = useGameStore((s) => s.playerCount);
+  const existingRoles = useGameStore((s) => s.roles);
 
   const [name, setName] = useState("");
   const [faction, setFaction] = useState<Faction>("villager");
@@ -36,6 +37,11 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
     const errs: string[] = [];
     if (!name.trim())
       errs.push(t("setup.errorNameRequired", "Tên role không được trống"));
+    const isDuplicate = existingRoles.some(
+      (r) => r.name.trim().toLowerCase() === name.trim().toLowerCase(),
+    );
+    if (isDuplicate)
+      errs.push(t("setup.errorDuplicateName", "Tên role đã tồn tại"));
     if (abilities.length === 0)
       errs.push(t("setup.errorNeedAbility", "Cần ít nhất 1 kỹ năng"));
     if (abilities.length > MAX_ABILITIES_PER_ROLE)
