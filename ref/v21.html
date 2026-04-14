@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Werewolf Moderator V21</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Bungee&family=Roboto:wght@400;700;900&display=swap");
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: #0f172a;
+        color: #e2e8f0;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        overflow: hidden;
+        overscroll-behavior-y: none;
+      }
+      .gamified-title {
+        font-family: "Bungee", cursive;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .flip-container {
+        perspective: 1000px;
+      }
+      .flip-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+        transform-style: preserve-3d;
+      }
+      .flip-container.flipped .flip-inner {
+        transform: rotateY(180deg);
+      }
+      .flip-face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        border-radius: 0.75rem;
+        display: flex;
+        flex-direction: column;
+      }
+      .flip-back {
+        transform: rotateY(180deg);
+      }
+
+      .modal-enter {
+        animation: slideUp 0.3s ease-out forwards;
+      }
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .timer-glow-pulse {
+        text-shadow: 0 0 30px currentColor;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.8;
+          transform: scale(1.05);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+      // ================= HỆ THỐNG MÀU SẮC ĐỒNG NHẤT (THEME) =================
+      const THEME = {
+          villager: { main: 'text-blue-400', bgMain: 'bg-blue-600', bgHover: 'hover:bg-blue-500', bgLight: 'bg-blue-900/40', border: 'border-blue-500/50', borderSolid: 'border-blue-500', glow: 'shadow-[0_0_15px_rgba(59,130,246,0.6)]', gradient: 'linear-gradient(145deg, #1e3a8a, #172554)' },
+          wolf: { main: 'text-red-400', bgMain: 'bg-red-600', bgHover: 'hover:bg-red-500', bgLight: 'bg-red-900/40', border: 'border-red-500/50', borderSolid: 'border-red-500', glow: 'shadow-[0_0_15px_rgba(239,68,68,0.6)]', gradient: 'linear-gradient(145deg, #7f1d1d, #450a0a)' },
+          third: { main: 'text-purple-400', bgMain: 'bg-purple-600', bgHover: 'hover:bg-purple-500', bgLight: 'bg-purple-900/40', border: 'border-purple-500/50', borderSolid: 'border-purple-500', glow: 'shadow-[0_0_15px_rgba(168,85,247,0.6)]', gradient: 'linear-gradient(145deg, #581c87, #3b0764)' },
+          dead: { main: 'text-slate-500', bgMain: 'bg-slate-800', bgHover: 'hover:bg-slate-700', bgLight: 'bg-red-950/80', border: 'border-red-900', borderSolid: 'border-red-800', glow: 'shadow-none', gradient: 'linear-gradient(145deg, #450a0a, #2e0505)' }
+      };
+
+      const DEFAULT_ROLES = [
+          { id: 'b_wolf', name: 'Ma Sói', order: 6, category: 'basic', faction: 'wolf', abilities: [{ id: 'a1', name: 'Cắn', type: 'nightly', max: 0, targetCount: 1 }] },
+          { id: 'b_seer', name: 'Tiên Tri', order: 9, category: 'basic', faction: 'villager', abilities: [{ id: 'a2', name: 'Soi', type: 'nightly', max: 0, targetCount: 1 }] },
+          { id: 'b_guard', name: 'Bảo Vệ', order: 11, category: 'basic', faction: 'villager', abilities: [{ id: 'a3', name: 'Bảo vệ', type: 'nightly', max: 0, targetCount: 1 }] },
+          { id: 'b_witch', name: 'Phù Thủy', order: 12, category: 'basic', faction: 'villager', abilities: [{ id: 'a4', name: 'Cứu', type: 'limited', max: 1, targetCount: 1 }, { id: 'a5', name: 'Giết', type: 'limited', max: 1, targetCount: 1 }]},
+          { id: 'b_hunter', name: 'Thợ Săn', order: 15, category: 'basic', faction: 'villager', abilities: [{ id: 'a6', name: 'Bắn', type: 'limited', max: 1, targetCount: 1 }] },
+          { id: 'b_cupid', name: 'Cupid', order: 2, category: 'basic', faction: 'villager', abilities: [{ id: 'a7', name: 'Ghép đôi', type: 'limited', max: 1, targetCount: 2 }] },
+          { id: 'b_idiot', name: 'Kẻ Khờ', order: 99, category: 'basic', faction: 'villager', abilities: [] },
+          { id: 'a_wwolf', name: 'Sói Trắng', order: 7, category: 'advanced', faction: 'wolf', abilities: [{ id: 'a8', name: 'Giết Sói', type: 'limited', max: 2, targetCount: 1 }] },
+          { id: 'a_cwolf', name: 'Sói Con', order: 6, category: 'advanced', faction: 'wolf', abilities: [{ id: 'a22', name: 'Cắn phẫn nộ', type: 'limited', max: 1, targetCount: 1 }] },
+          { id: 'a_traitor', name: 'Kẻ Phản Bội', order: 99, category: 'advanced', faction: 'wolf', abilities: [] },
+          { id: 'a_mother', name: 'Mẹ Trẻ', order: 10, category: 'advanced', faction: 'villager', abilities: [{ id: 'a20', name: 'Nuôi dưỡng', type: 'limited', max: 1, targetCount: 1 }] },
+          { id: 'a_chief', name: 'Trưởng Làng', order: 99, category: 'advanced', faction: 'villager', abilities: [{ id: 'a21', name: 'Nhiều mạng', type: 'limited', max: 2, targetCount: 1 }] },
+          { id: 'a_lycan', name: 'Người Hóa Sói', order: 99, category: 'advanced', faction: 'villager', abilities: [] },
+          { id: 'a_thief', name: 'Kẻ Trộm', order: 1, category: 'advanced', faction: 'third', abilities: [{ id: 'a17', name: 'Trộm Role', type: 'limited', max: 1, targetCount: 1 }] },
+          { id: 'a_tanner', name: 'Chán Đời', order: 99, category: 'advanced', faction: 'third', abilities: [] },
+      ];
+
+      const INITIAL_ROLE_IDS = ['b_wolf', 'b_seer', 'b_guard', 'b_witch', 'b_hunter', 'a_lycan', 'a_traitor'];
+      const createInitialRoles = () => INITIAL_ROLE_IDS.map((tid, idx) => {
+          const tpl = DEFAULT_ROLES.find(r => r.id === tid);
+          return tpl ? { ...tpl, id: `init_${Date.now()}_${idx}`, templateId: tpl.id, abilities: (tpl.abilities||[]).map(a => ({...a, id: `ab_${Math.random()}`})) } : null;
+      }).filter(Boolean);
+
+      // ================= ERROR BOUNDARY =================
+      class ErrorBoundary extends React.Component {
+          constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+          static getDerivedStateFromError(error) { return { hasError: true, error }; }
+          render() {
+              if (this.state.hasError) return (
+                  <div className="p-6 bg-red-900 text-white h-screen font-mono text-xs overflow-auto">
+                      <h2 className="text-xl font-bold mb-4">Lỗi Hệ Thống</h2>
+                      <p>{this.state.error.toString()}</p>
+                      <button onClick={() => window.location.reload()} className="mt-4 p-3 bg-white text-red-900 font-bold rounded">TẢI LẠI TRANG</button>
+                  </div>
+              );
+              return this.props.children;
+          }
+      }
+
+      // ================= GENERIC BOTTOM SHEET =================
+      const BottomSheet = ({ isOpen, onClose, title, icon, titleColor = "text-white", children, fullHeight = false }) => {
+          if (!isOpen) return null;
+          return (
+              <div className="fixed inset-0 z-[80] bg-slate-950/90 flex flex-col justify-end backdrop-blur-sm" onClick={onClose}>
+                  <div className={`bg-slate-900 rounded-t-[2rem] p-5 border-t-2 border-slate-700 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] modal-enter flex flex-col ${fullHeight ? 'h-[90vh]' : 'max-h-[85vh]'}`} onClick={e => e.stopPropagation()}>
+                      <div className="flex justify-between items-center mb-5 shrink-0">
+                          {title && <h3 className={`text-2xl font-black ${titleColor} uppercase tracking-wide`}><i className={`fas ${icon} mr-3 opacity-80`}></i>{title}</h3>}
+                          <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center hover:bg-slate-700 transition"><i className="fas fa-times text-xl"></i></button>
+                      </div>
+                      <div className="flex-1 overflow-y-auto hide-scrollbar flex flex-col">{children}</div>
+                  </div>
+              </div>
+          );
+      };
+
+      // ================= COMPONENT: NUMBER/TYPE SELECTOR =================
+      const SelectorModal = ({ selector, rolesCount, playerCount, onClose, onSelect }) => {
+          const [customVal, setCustomVal] = useState('');
+          let title = '', options = [], isNumber = true, icon = 'fa-hashtag';
+
+          if (selector.type === 'order') { title = 'Thứ Tự Gọi Đêm'; options = Array.from({length: Math.max(rolesCount, 1)}, (_,i)=>i+1); }
+          else if (selector.type === 'targetCount') { title = 'Số Lượng Mục Tiêu'; options = Array.from({length: playerCount}, (_,i)=>i+1); icon = 'fa-users'; }
+          else if (selector.type === 'max') { title = 'Số Lần Dùng Kỹ Năng'; options = [1,2,3,4,5,6,7,8,9,10]; }
+          else if (selector.type === 'skillType') { title = 'Loại Kỹ Năng'; isNumber = false; icon = 'fa-list'; options = [{ value: 'nightly', label: 'Mỗi Đêm' }, { value: 'limited', label: 'Giới Hạn' }]; }
+
+          return (
+              <BottomSheet isOpen={true} onClose={onClose} title={title} icon={icon}>
+                  <div className={`grid ${isNumber ? 'grid-cols-5' : 'grid-cols-2'} gap-3 pb-2`}>
+                      {options.map(opt => {
+                          const val = isNumber ? opt : opt.value;
+                          const isActive = selector.currentValue === val;
+                          return (
+                              <button key={val} onClick={() => onSelect(val)}
+                                  className={`py-4 rounded-xl font-bold ${isNumber ? 'text-xl' : 'text-sm'} transition-all transform active:scale-95 ${isActive ? 'bg-indigo-600 text-white shadow-[0_0_15px_rgba(79,70,229,0.5)] border-2 border-indigo-400' : 'bg-slate-800 text-slate-300 border-2 border-slate-700'}`}>
+                                  {isNumber ? opt : opt.label}
+                              </button>
+                          )
+                      })}
+                  </div>
+              </BottomSheet>
+          );
+      };
+
+      // ================= COMPONENT: ĐỒNG HỒ TIMER =================
+      const TimerBoard = React.memo(({ settings, onOpenModal }) => {
+          const [timer, setTimer] = useState({ active: false, value: 0, initial: 0, type: null, paused: false });
+          const timerRef = useRef(null);
+
+          const startTimer = (seconds, type) => {
+              if (timerRef.current) clearInterval(timerRef.current);
+              setTimer({ active: true, value: seconds, initial: seconds, type, paused: false });
+              timerRef.current = setInterval(() => {
+                  setTimer(prev => {
+                      if (prev.paused) return prev;
+                      if (prev.value <= 1) { clearInterval(timerRef.current); return { ...prev, value: 0, active: false }; }
+                      return { ...prev, value: prev.value - 1 };
+                  });
+              }, 1000);
+          };
+
+          const togglePause = () => setTimer(prev => ({ ...prev, paused: !prev.paused }));
+          const stopTimer = () => { if (timerRef.current) clearInterval(timerRef.current); setTimer({ active: false, value: 0, initial: 0, type: null, paused: false }); };
+
+          return (
+              <>
+                  {timer.active && (
+                      <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6">
+                          <h2 className={`text-2xl font-black uppercase tracking-widest mb-10 ${timer.type === 'debate' ? 'text-orange-400' : 'text-red-400'}`}>
+                              {timer.type === 'debate' ? 'Tranh Luận' : 'Phán Quyết'}
+                          </h2>
+                          <div className={`text-[120px] font-black gamified-title timer-glow-pulse mb-16 leading-none ${timer.type === 'debate' ? 'text-orange-500' : 'text-red-600'}`}>
+                              {Math.floor(timer.value / 60).toString().padStart(2, '0')}:{(timer.value % 60).toString().padStart(2, '0')}
+                          </div>
+                          <div className="flex gap-6 w-full max-w-sm">
+                              <button onClick={togglePause} className="flex-1 py-5 bg-slate-800 border-2 border-slate-600 rounded-[2rem] text-3xl shadow-xl flex items-center justify-center transform active:scale-95 transition">
+                                  <i className={`fas ${timer.paused ? 'fa-play text-emerald-400' : 'fa-pause text-amber-400'}`}></i>
+                              </button>
+                              <button onClick={stopTimer} className="flex-1 py-5 bg-red-900 border-2 border-red-600 rounded-[2rem] text-3xl shadow-xl flex items-center justify-center transform active:scale-95 transition">
+                                  <i className="fas fa-stop text-red-300"></i>
+                              </button>
+                          </div>
+                      </div>
+                  )}
+
+                  <div className="bg-slate-900 p-3 border-b-2 border-slate-800 flex justify-between items-center z-10 shadow-lg shrink-0 rounded-b-3xl mx-2 mt-2">
+                      <div className="flex flex-col items-center flex-1">
+                          <div className="text-xl font-black gamified-title text-slate-300">{settings.debate}s</div>
+                          <button onClick={() => startTimer(settings.debate, 'debate')} className="mt-1 text-[10px] px-3 py-1 rounded-full font-black uppercase bg-gradient-to-b from-orange-500 to-orange-700 text-white shadow-lg"><i className="fas fa-play mr-1"></i> Luận</button>
+                      </div>
+                      <div className="flex items-center gap-6 border-x-2 border-slate-800 px-6">
+                          <button onClick={() => onOpenModal('history')} className="flex flex-col items-center text-slate-400 hover:text-white transition"><i className="fas fa-book-open text-xl mb-1"></i><span className="text-[9px] font-bold uppercase tracking-wider">Lịch Sử</span></button>
+                          <button onClick={() => onOpenModal('night')} className="flex flex-col items-center text-emerald-400 hover:text-emerald-300 transition"><i className="fas fa-moon text-xl mb-1"></i><span className="text-[9px] font-bold uppercase tracking-wider">Qua Đêm</span></button>
+                          <button onClick={() => onOpenModal('settings')} className="flex flex-col items-center text-slate-400 hover:text-white transition"><i className="fas fa-cog text-xl mb-1"></i><span className="text-[9px] font-bold uppercase tracking-wider">Cài Đặt</span></button>
+                      </div>
+                      <div className="flex flex-col items-center flex-1">
+                          <div className="text-xl font-black gamified-title text-slate-300">{settings.judgment}s</div>
+                          <button onClick={() => startTimer(settings.judgment, 'judgment')} className="mt-1 text-[10px] px-3 py-1 rounded-full font-black uppercase bg-gradient-to-b from-red-600 to-red-800 text-white shadow-lg"><i className="fas fa-play mr-1"></i> Treo</button>
+                      </div>
+                  </div>
+              </>
+          );
+      });
+
+      // ================= COMPONENT: THẺ NGƯỜI CHƠI (TỐI ƯU HÓA) =================
+      const PlayerCard = React.memo(({ player, role, actions, isFlipped, viewMode, onFlip, onSelect, onUndoAction }) => {
+          const isVillager = player.roleId === 0;
+          const roleName = isVillager ? 'Dân Làng' : role?.name || 'Dân Làng';
+          const abilities = role?.abilities || [];
+          const col = getCol(player.alive ? (isVillager ? 'villager' : role?.faction) : 'dead');
+
+          const RenderChips = () => (
+              <div className="mt-auto flex flex-wrap gap-1 w-full" onClick={e=>e.stopPropagation()}>
+                  {actions.map(action => {
+                      const actCol = getCol(action.faction);
+                      return (
+                          <div key={action.id} onClick={(e) => onUndoAction(action.id, e)} className={`cursor-pointer text-[9px] px-2 py-1 rounded-md border-b-2 flex items-center gap-1 w-full justify-between ${actCol.bgDark} ${actCol.borderSolid} text-white shadow-sm`}>
+                              <div className="flex items-center gap-1 truncate">
+                                  {action.abilityType === 'limited' && <i className="fas fa-lock text-[8px] opacity-70"></i>}
+                                  <span className="truncate font-bold tracking-wide">{action.abilityName}</span>
+                              </div>
+                              <i className="fas fa-times opacity-50"></i>
+                          </div>
+                      )
+                  })}
+              </div>
+          );
+
+          // Mặt Tên (FRONT)
+          const nameContent = (
+              <div className={`flip-face p-3 ${col.borderSolid} border-2`} style={{background: col.gradient}}>
+                  <div className="flex justify-between items-start mb-2">
+                      <span className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-sm shadow-inner bg-black/30 text-white`}>{player.id}</span>
+                      {!player.alive && <i className="fas fa-skull text-red-400 text-xl drop-shadow"></i>}
+                  </div>
+                  <div className="text-center mt-auto mb-auto">
+                      <div className={`font-black text-xl truncate px-1 text-white drop-shadow-md ${!player.alive ? 'line-through opacity-50' : ''}`}>{player.name}</div>
+                  </div>
+                  <RenderChips />
+                  <button onClick={(e) => onSelect(player.id, e)} className="absolute top-2 right-2 text-white/50 hover:text-white p-2"><i className="fas fa-ellipsis-v"></i></button>
+              </div>
+          );
+
+          // Mặt Role (BACK)
+          const roleContent = (
+              <div className={`flip-face p-2 ${col.borderSolid} border-2`} style={{background: col.gradient}}>
+                  <div className="flex justify-between items-start">
+                       <span className="bg-black/30 text-white/80 w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs">{player.id}</span>
+                       <button onClick={(e) => onSelect(player.id, e)} className="text-white/50 hover:text-white p-1 -mt-1"><i className="fas fa-ellipsis-v"></i></button>
+                  </div>
+                  <div className="text-center mt-1 mb-2">
+                      <div className="font-black text-[15px] text-white truncate px-1 uppercase tracking-widest drop-shadow">{roleName}</div>
+                  </div>
+                  <div className="flex-1 flex flex-col justify-center text-center overflow-y-auto hide-scrollbar space-y-1.5">
+                      {isVillager ? <span className="text-[11px] text-white/50 italic font-bold">Không kỹ năng</span> : (
+                          abilities.map(ab => {
+                              const used = player.abilityUsage[ab.id] || 0;
+                              const isDisabled = ab.type === 'limited' && used >= ab.max;
+                              return (
+                                  <div key={ab.id} className={`text-[10px] border-b-2 rounded-lg py-1 px-1.5 flex justify-between items-center font-bold ${isDisabled ? 'bg-black/40 border-black/50 text-white/40' : 'bg-white/10 border-white/20 text-white'}`}>
+                                      <span className="truncate max-w-[65%]">{ab.name}</span>
+                                      <span className="opacity-90 bg-black/30 px-1 rounded">{ab.type==='limited' ? `${used}/${ab.max}` : <i className="fas fa-moon text-[8px]"></i>}</span>
+                                  </div>
+                              )
+                          })
+                      )}
+                  </div>
+                  <RenderChips />
+              </div>
+          );
+
+          if (viewMode === 'both') {
+              return (
+                  <div className="w-full h-auto cursor-default">
+                      <div className={`w-full p-3 flex flex-col rounded-2xl relative border-2 ${col.borderSolid} shadow-lg`} style={{background: col.gradient}}>
+                          <div className="flex justify-between items-center mb-2">
+                              <span className="bg-black/30 text-white w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0">{player.id}</span>
+                              <div className="text-[11px] font-black text-white/80 uppercase tracking-widest truncate ml-2 text-right flex-1">{roleName}</div>
+                              <button onClick={(e) => onSelect(player.id, e)} className="text-white/50 hover:text-white ml-2 p-1"><i className="fas fa-ellipsis-v"></i></button>
+                          </div>
+                          <div className={`font-black text-lg text-white truncate px-1 text-center mb-3 drop-shadow ${!player.alive ? 'line-through opacity-50' : ''}`}>{player.name}</div>
+
+                          {!isVillager && abilities.length > 0 && (
+                              <div className="space-y-1.5 mb-3">
+                                  {abilities.map(ab => {
+                                      const used = player.abilityUsage[ab.id] || 0;
+                                      return (
+                                          <div key={ab.id} className="text-[9px] font-bold border-b-2 border-white/20 rounded-lg bg-white/10 py-1 px-1.5 flex justify-between items-center text-white">
+                                              <span className="truncate max-w-[70%]">{ab.name}</span>
+                                              <span className="bg-black/30 px-1 rounded">{ab.type==='limited' ? `${used}/${ab.max}` : <i className="fas fa-moon text-[7px]"></i>}</span>
+                                          </div>
+                                      )
+                                  })}
+                              </div>
+                          )}
+                          <RenderChips />
+                      </div>
+                  </div>
+              )
+          }
+
+          return (
+              <div className={`flip-container w-full h-36 cursor-pointer ${isFlipped ? 'flipped' : ''}`} onClick={() => onFlip(player.id)}>
+                  <div className="flip-inner shadow-lg rounded-[0.75rem]">{nameContent}{roleContent}</div>
+              </div>
+          );
+      });
+
+      // ================= MAIN APP =================
+      const App = () => {
+          const [step, setStep] = useState('setup');
+          const [playerCount, setPlayerCount] = useState(10);
+          const [players, setPlayers] = useState(Array.from({ length: 10 }, (_, i) => ({ id: i + 1, name: `P${i + 1}`, roleId: 0, alive: true, abilityUsage: {} })));
+
+          const [roleTemplates, setRoleTemplates] = useState(DEFAULT_ROLES);
+          const [roles, setRoles] = useState(() => createInitialRoles());
+
+          const [cardViewMode, setCardViewMode] = useState('nameFirst');
+          const [flippedCards, setFlippedCards] = useState({});
+
+          const [actionLog, setActionLog] = useState([]);
+          const [statusChangeLog, setStatusChangeLog] = useState([]);
+          const [roleChangeLog, setRoleChangeLog] = useState([]);
+          const [gameHistory, setGameHistory] = useState([]);
+          const [nightCount, setNightCount] = useState(1);
+          const [timerSettings, setTimerSettings] = useState({ debate: 60, judgment: 30 });
+
+          // MODALS TẬP TRUNG
+          const [activeModal, setActiveModal] = useState(null);
+          const [selectedPlayer, setSelectedPlayer] = useState(null);
+          const [assigningRole, setAssigningRole] = useState(null);
+          const [globalActionState, setGlobalActionState] = useState(null);
+          const [activeSelector, setActiveSelector] = useState(null);
+
+          // --- Handlers Tối ưu ---
+          const handlePlayerCountChange = (e) => {
+              const newCount = parseInt(e.target.value);
+              setPlayerCount(newCount);
+              setPlayers(prev => {
+                  if (newCount > prev.length) return [...prev, ...Array.from({length: newCount - prev.length}, (_, i) => ({ id: prev.length + i + 1, name: `P${prev.length + i + 1}`, roleId: 0, alive: true, abilityUsage: {} }))];
+                  else return prev.slice(0, newCount);
+              });
+          };
+
+          const updatePlayerName = (id, newName) => setPlayers(players.map(p => p.id === id ? { ...p, name: newName } : p));
+          const handleCardFlip = useCallback((id) => { if (cardViewMode !== 'both') setFlippedCards(prev => ({...prev, [id]: !prev[id]})); }, [cardViewMode]);
+          const handleCardSelect = useCallback((id, e) => { e.stopPropagation(); setSelectedPlayer(id); }, []);
+
+          const handleUndoAction = useCallback((actionId, e) => {
+              e.stopPropagation();
+              setActionLog(prev => {
+                  const actionToUndo = prev.find(a => a.id === actionId);
+                  if(!actionToUndo) return prev;
+                  if (prev.filter(a => a.executionId === actionToUndo.executionId).length === 1) {
+                      setPlayers(ps => ps.map(p => {
+                          if (p.id === actionToUndo.sourceId) {
+                              const currentCount = p.abilityUsage[actionToUndo.abilityId] || 1;
+                              return { ...p, abilityUsage: { ...p.abilityUsage, [actionToUndo.abilityId]: Math.max(0, currentCount - 1) } };
+                          }
+                          return p;
+                      }));
+                  }
+                  return prev.filter(a => a.id !== actionId);
+              });
+          }, []);
+
+          // --- Role Setup Logic ---
+          const addRoleFromTemplate = (template) => {
+              const newRole = { ...template, id: Date.now(), templateId: template.id, abilities: (template.abilities||[]).map(a => ({...a, id: Date.now() + Math.random()})) };
+              setRoles(prev => [...prev, newRole]);
+              setActiveModal(null);
+          };
+
+          const handleCreateCustomRole = (draft) => {
+              const newTemplate = { id: `c_${Date.now()}`, name: draft.name, category: 'custom', faction: draft.faction, order: 10, abilities: draft.abilities };
+              setRoleTemplates(prev => [...prev, newTemplate]);
+              addRoleFromTemplate(newTemplate);
+              setActiveModal(null);
+          };
+
+          const updateRoleName = (id, value) => setRoles(roles.map(r => r.id === id ? { ...r, name: value } : r));
+
+          const changeRoleOrder = useCallback((roleId, newPosition) => {
+              setRoles(prevRoles => {
+                  const sorted = [...prevRoles].sort((a, b) => a.order - b.order);
+                  const currentIndex = sorted.findIndex(r => r.id === roleId);
+                  if (currentIndex === -1 || currentIndex + 1 === newPosition) return prevRoles;
+                  const [target] = sorted.splice(currentIndex, 1);
+                  sorted.splice(newPosition - 1, 0, target);
+                  return sorted.map((r, i) => ({ ...r, order: i + 1 }));
+              });
+          }, []);
+
+          const deleteRole = (id) => setRoles(roles.filter(r => r.id !== id));
+          const addAbility = (roleId) => setRoles(roles.map(r => r.id === roleId ? { ...r, abilities: [...(r.abilities||[]), { id: Date.now(), name: 'Kỹ năng', type: 'nightly', max: 1, targetCount: 1 }] } : r));
+          const updateAbility = (roleId, abilityId, field, value) => setRoles(roles.map(r => r.id === roleId ? { ...r, abilities: (r.abilities||[]).map(a => a.id === abilityId ? { ...a, [field]: value } : a) } : r));
+          const deleteAbility = (roleId, abilityId) => setRoles(roles.map(r => r.id === roleId ? { ...r, abilities: (r.abilities||[]).filter(a => a.id !== abilityId) } : r));
+
+          const handleSelectorSelect = useCallback((val) => {
+              if (!activeSelector) return;
+              const { type, roleId, abilityId } = activeSelector;
+              if (type === 'order') changeRoleOrder(roleId, val);
+              else if (type === 'max') updateAbility(roleId, abilityId, 'max', val);
+              else if (type === 'targetCount') updateAbility(roleId, abilityId, 'targetCount', val);
+              else if (type === 'skillType') updateAbility(roleId, abilityId, 'type', val);
+              setActiveSelector(null);
+          }, [activeSelector, changeRoleOrder]);
+
+          // --- Maps & Memos ---
+          const roleMap = useMemo(() => Object.fromEntries(roles.map(r => [r.id, r])), [roles]);
+
+          const sortedRoles = useMemo(() => [...roles].sort((a,b) => a.order - b.order), [roles]);
+          const sortedPlayers = useMemo(() => {
+              const getWeight = (p) => p.roleId === 0 ? 999 : (roleMap[p.roleId]?.order || 999);
+              return [...players].sort((a, b) => { const wA = getWeight(a), wB = getWeight(b); if (wA !== wB) return wA - wB; return a.id - b.id; });
+          }, [players, roleMap]);
+
+          const playerActionMap = useMemo(() => {
+              const map = {};
+              actionLog.forEach(a => { if(!map[a.targetId]) map[a.targetId]=[]; map[a.targetId].push(a); });
+              return map;
+          }, [actionLog]);
+
+          // --- Game Actions ---
+          const togglePlayerRole = (playerId, targetRoleId) => {
+              const player = players.find(p => p.id === playerId);
+              const newRoleId = player.roleId === targetRoleId ? 0 : targetRoleId;
+              setRoleChangeLog(prev => {
+                  const existing = prev.find(l => l.playerId === playerId);
+                  if (existing) {
+                      if (existing.fromRoleId === newRoleId) return prev.filter(l => l.playerId !== playerId);
+                      return prev.map(l => l.playerId === playerId ? { ...l, toRoleId: newRoleId } : l);
+                  }
+                  return [...prev, { playerId, fromRoleId: player.roleId, toRoleId: newRoleId }];
+              });
+              setPlayers(players.map(p => p.id === playerId ? {...p, roleId: newRoleId} : p));
+          };
+
+          const selectAbility = (ability, roleId) => {
+              const capablePlayers = players.filter(p => p.roleId === roleId && p.alive);
+              if (capablePlayers.length === 0) return;
+              if (capablePlayers.length === 1) setGlobalActionState({ step: 3, ability, roleId, sourceId: capablePlayers[0].id, targets: [] });
+              else setGlobalActionState({ step: 2, ability, roleId, sourceId: null, targets: [], possibleSources: capablePlayers });
+          };
+
+          const toggleGlobalTarget = (targetId) => {
+              if(!globalActionState) return;
+              const { targets, ability } = globalActionState;
+              if(targets.includes(targetId)) setGlobalActionState({...globalActionState, targets: targets.filter(id => id !== targetId)});
+              else if(targets.length < ability.targetCount) setGlobalActionState({...globalActionState, targets: [...targets, targetId]});
+          };
+
+          const executeGlobalAction = (isNoTarget = false) => {
+              const { sourceId, ability, targets, roleId } = globalActionState;
+              const srcRole = roleMap[roleId];
+              const faction = srcRole ? srcRole.faction : 'villager';
+
+              setPlayers(players.map(p => {
+                  if (p.id === sourceId) {
+                      const currentCount = p.abilityUsage[ability.id] || 0;
+                      return { ...p, abilityUsage: { ...p.abilityUsage, [ability.id]: currentCount + 1 } };
+                  }
+                  return p;
+              }));
+              if (!isNoTarget && targets.length > 0) {
+                  const executionId = Date.now();
+                  const newActions = targets.map(targetId => ({
+                      id: Math.random().toString(36).substr(2, 9), executionId, turnAdded: nightCount,
+                      sourceId, targetId, abilityId: ability.id, abilityName: ability.name, abilityType: ability.type, faction
+                  }));
+                  setActionLog([...actionLog, ...newActions]);
+              }
+              setGlobalActionState(null);
+          };
+
+          const togglePlayerStatusFromModal = (id) => {
+              const player = players.find(p => p.id === id);
+              const newStatus = !player.alive;
+              setPlayers(players.map(p => p.id === id ? { ...p, alive: newStatus } : p));
+              setStatusChangeLog(prev => {
+                  const existingIdx = prev.findIndex(log => log.playerId === id);
+                  if (existingIdx >= 0) { const newLogs = [...prev]; newLogs[existingIdx] = { playerId: id, toStatus: newStatus }; return newLogs; }
+                  return [...prev, { playerId: id, toStatus: newStatus }];
+              });
+              setSelectedPlayer(null);
+          };
+
+          const handleNextNight = () => {
+              const actionsThisTurn = actionLog.filter(a => a.turnAdded === nightCount);
+              setGameHistory([...gameHistory, { night: nightCount, actionLogs: actionsThisTurn, statusLogs: [...statusChangeLog], roleLogs: [...roleChangeLog] }]);
+              setNightCount(nightCount + 1);
+
+              setActionLog(prev => prev.filter(a => a.abilityType === 'limited'));
+              setStatusChangeLog([]); setRoleChangeLog([]);
+
+              setPlayers(players.map(p => {
+                  if(p.roleId === 0) return p;
+                  const role = roleMap[p.roleId];
+                  if(!role) return p;
+                  const newUsage = { ...p.abilityUsage };
+                  (role.abilities||[]).forEach(ab => { if(ab.type === 'nightly') newUsage[ab.id] = 0; });
+                  return { ...p, abilityUsage: newUsage };
+              }));
+              setActiveModal(null);
+          };
+
+          const resetGame = () => {
+              setActionLog([]); setStatusChangeLog([]); setRoleChangeLog([]); setGameHistory([]); setNightCount(1);
+              setPlayers(players.map(p => ({ ...p, roleId: 0, alive: true, abilityUsage: {} })));
+              setFlippedCards({});
+              setRoles(createInitialRoles());
+              setActiveModal(null); setStep('setup');
+          };
+
+          // RENDER HÀM CHO CÁC MODAL & TAB
+          const renderRoleGroup = (cat, fac, title) => {
+              const list = roleTemplates.filter(r => r.category === cat && r.faction === fac);
+              if (list.length === 0) return null;
+              const col = getCol(fac);
+              return (
+                  <div className="mb-4">
+                      <div className={`text-[11px] font-black uppercase tracking-widest mb-2 ${col.textBright} opacity-80 flex items-center`}>
+                          <div className={`w-2 h-2 rounded-full ${col.bgMain} mr-2`}></div> {title}
+                      </div>
+                      <div className="space-y-2">
+                          {list.map(tpl => {
+                              const isAdded = roles.some(r => r.templateId === tpl.id || r.id === tpl.id);
+                              return (
+                                  <button key={tpl.id} onClick={() => !isAdded && addRoleFromTemplate(tpl)} disabled={isAdded}
+                                      className={`w-full bg-slate-800 border-2 ${col.borderLight} rounded-xl p-4 flex justify-between items-center text-left transition-all ${isAdded ? 'opacity-30 grayscale' : `hover:${col.bgDark} hover:border-solid ${col.borderSolid}`}`}>
+                                      <div>
+                                          <span className={`font-black text-lg ${col.text}`}>{tpl.name}</span>
+                                          <div className="text-[10px] text-white/50 font-bold mt-1 uppercase tracking-wide">{(tpl.abilities||[]).length} Kỹ năng</div>
+                                      </div>
+                                      <i className={`fas ${isAdded ? 'fa-check text-slate-500' : `fa-plus ${col.text}`} text-xl`}></i>
+                                  </button>
+                              );
+                          })}
+                      </div>
+                  </div>
+              );
+          };
+
+          const renderActionStep1 = () => (
+              <>
+                  <div className="flex-1 overflow-y-auto hide-scrollbar space-y-4 pb-4">
+                      {sortedRoles.filter(r => (r.abilities||[]).length > 0 && players.some(p => p.roleId === r.id && p.alive)).map(role => {
+                          const rolePlayers = players.filter(p => p.roleId === role.id && p.alive);
+                          const col = getCol(role.faction);
+                          return (
+                          <div key={role.id} className={`bg-slate-900 border-2 ${col.borderHalf} rounded-2xl overflow-hidden shadow-lg`}>
+                              <div className={`w-full p-4 flex justify-between items-center ${col.bgLight}`}>
+                                  <div className={`font-black text-left ${col.textBright} text-lg uppercase tracking-wide`}>{role.name}</div>
+                                  <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar pl-2">
+                                      {rolePlayers.map(p => <span key={p.id} className={`${col.badge} border ${col.borderHalf} text-white text-[10px] px-2 py-1 rounded-md font-bold whitespace-nowrap shadow-sm`}>{p.name}</span>)}
+                                  </div>
+                              </div>
+                              <div className="p-4 grid grid-cols-2 gap-3">
+                                  {role.abilities.map(ab => <button key={ab.id} onClick={() => selectAbility(ab, role.id)} className={`${col.bgMain} ${col.bgHover} text-white py-4 rounded-xl text-sm font-black shadow-md border-b-4 border-black/20 active:border-b-0 transform active:translate-y-1 transition-all`}><i className="fas fa-bolt mr-2 opacity-70"></i> {ab.name}</button>)}
+                              </div>
+                          </div>
+                      )})}
+                      {sortedRoles.filter(r => (r.abilities||[]).length > 0 && players.some(p => p.roleId === r.id && p.alive)).length === 0 && <p className="text-center text-slate-500 mt-10 font-bold">Không có kỹ năng nào khả dụng lúc này.</p>}
+                  </div>
+              </>
+          );
+
+          const renderActionStep2 = () => {
+              const col = getCol(roleMap[globalActionState.roleId]?.faction);
+              return (
+                  <>
+                      <p className="text-center text-slate-400 mb-6 text-sm font-bold">Ai là người tung chiêu?</p>
+                      <div className="grid grid-cols-2 gap-4 flex-1 content-start">
+                          {globalActionState.possibleSources.map(p => (
+                              <button key={p.id} onClick={() => setGlobalActionState({...globalActionState, step: 3, sourceId: p.id})} className={`p-5 rounded-2xl border-2 bg-slate-800 hover:${col.bgDark} ${col.borderHalf} font-black text-white shadow-lg flex flex-col items-center justify-center gap-2 transition-all`}>
+                                  <span className="bg-black/40 text-white/50 px-2 py-0.5 rounded text-[10px]">ID: {p.id}</span>
+                                  <span className="text-lg">{p.name}</span>
+                              </button>
+                          ))}
+                      </div>
+                      <button onClick={() => setGlobalActionState({...globalActionState, step: 1})} className="mt-4 w-full py-4 bg-slate-800 rounded-xl font-bold text-white border border-slate-600"><i className="fas fa-arrow-left mr-2"></i> Quay Lại Chọn Chiêu</button>
+                  </>
+              )
+          };
+
+          const renderActionStep3 = () => {
+              const role = roleMap[globalActionState.roleId];
+              if (!role) return null;
+              const col = getCol(role.faction);
+              const sourceName = players.find(p=>p.id===globalActionState.sourceId)?.name;
+
+              return (
+                  <>
+                      <div className="text-center mb-6 shrink-0 bg-slate-900 border border-slate-700 p-4 rounded-2xl">
+                          <p className="text-sm text-slate-300 font-bold">Người Dùng Chiêu: <span className="text-white">{sourceName}</span></p>
+                          <div className="flex justify-center items-center gap-3 mt-2">
+                              <span className={`font-black text-2xl ${col.textBright} uppercase`}>{globalActionState.ability.name}</span>
+                              <span className="bg-black/50 text-white/70 px-2 py-1 rounded text-xs font-bold">Tối đa: {globalActionState.ability.targetCount}</span>
+                          </div>
+                      </div>
+                      <div className="flex-1 overflow-y-auto hide-scrollbar grid grid-cols-2 gap-3 pb-4">
+                          {players.map(p => {
+                              const isSelected = globalActionState.targets.includes(p.id);
+                              return (
+                                  <button key={p.id} onClick={() => toggleGlobalTarget(p.id)} className={`p-4 rounded-2xl border-2 flex flex-col items-center justify-center transition-all ${isSelected ? `${col.bgMain} ${col.borderSolid} text-white ${col.shadowStrong} transform scale-95` : p.alive ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-900 border-slate-800 opacity-40'}`}>
+                                      <span className={`font-black text-lg truncate w-full text-center ${!p.alive ? 'line-through text-red-500' : ''}`}>{p.name}</span>
+                                  </button>
+                              )
+                          })}
+                      </div>
+                      <div className="flex gap-3 shrink-0 pt-2 mt-auto">
+                          <button onClick={() => setGlobalActionState(null)} className="py-4 px-6 bg-slate-800 border border-slate-600 rounded-2xl font-bold text-slate-400"><i className="fas fa-times text-xl"></i></button>
+                          <button onClick={() => executeGlobalAction(globalActionState.targets.length === 0)} className={`flex-1 py-4 rounded-2xl font-black text-white text-lg shadow-lg ${globalActionState.targets.length === 0 ? 'bg-slate-600' : col.bgMain}`}>
+                              {globalActionState.targets.length === 0 ? <><i className="fas fa-ban mr-2"></i> Bỏ Qua</> : <><i className="fas fa-check mr-2"></i> Xác Nhận Lên ({globalActionState.targets.length})</>}
+                          </button>
+                      </div>
+                  </>
+              )
+          };
+
+          // ================= GIAO DIỆN SETUP =================
+          if (step === 'setup') {
+              return (
+                  <div className="w-full h-screen max-w-lg mx-auto bg-slate-950 sm:border-x-2 sm:border-slate-800 shadow-2xl flex flex-col relative overflow-hidden">
+                      <div className="flex-1 overflow-y-auto p-5 pb-28 hide-scrollbar">
+                          <div className="text-center mb-8 mt-4">
+                              <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(79,70,229,0.5)]">
+                                  <i className="fas fa-moon text-4xl text-white"></i>
+                              </div>
+                              <h1 className="text-3xl font-black gamified-title text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Thiết Lập</h1>
+                          </div>
+
+                          <div className="bg-slate-900 p-5 rounded-[2rem] border-2 border-slate-800 mb-8 shadow-xl">
+                              <div className="flex justify-between items-center mb-6">
+                                  <label className="font-black text-lg text-slate-300 uppercase tracking-wider">Số Người Chơi</label>
+                                  <span className="bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-black text-xl shadow-lg border-b-4 border-black/20">{playerCount}</span>
+                              </div>
+                              <input type="range" min="4" max="30" value={playerCount} onChange={handlePlayerCountChange} className="w-full h-3 bg-slate-800 rounded-full appearance-none cursor-pointer accent-indigo-500 mb-6" />
+                              <div className="grid grid-cols-2 gap-3 max-h-56 overflow-y-auto hide-scrollbar pr-1">
+                                  {players.map(p => (
+                                      <div key={p.id} className="flex items-center bg-slate-800 border-2 border-slate-700 rounded-xl px-3 py-2 focus-within:border-indigo-500 transition-colors">
+                                          <span className="text-[10px] text-slate-500 font-bold w-6">#{p.id}</span>
+                                          <input type="text" value={p.name} onChange={(e) => updatePlayerName(p.id, e.target.value)} className="bg-transparent text-white text-sm outline-none flex-1 w-full font-bold" placeholder={`Tên P${p.id}`} />
+                                      </div>
+                                  ))}
+                              </div>
+                          </div>
+
+                          <div className="mb-6">
+                              <div className="flex justify-between items-center mb-6 pl-2">
+                                  <h2 className="font-black text-xl text-slate-200 uppercase tracking-widest">Bộ Bài (Roles)</h2>
+                                  <button onClick={() => setActiveModal('library')} className="bg-gradient-to-r from-teal-500 to-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg"><i className="fas fa-book-open mr-2"></i> Thư Viện</button>
+                              </div>
+                              {roles.length === 0 && <div className="text-sm text-slate-500 font-bold text-center p-8 border-2 border-dashed border-slate-700 rounded-3xl mb-4">Bàn trống. Bấm "Thư Viện" để chọn nhân vật.</div>}
+
+                              {sortedRoles.map((role, index) => {
+                                  const col = getCol(role.faction);
+                                  return (
+                                  <div key={role.id} className={`bg-slate-900 p-4 rounded-3xl mb-4 border-2 ${col.borderLight} shadow-lg relative`}>
+                                      <button onClick={() => deleteRole(role.id)} className="absolute -top-3 -right-2 w-8 h-8 bg-red-600 rounded-full text-white shadow-lg border-2 border-slate-900 flex items-center justify-center hover:bg-red-500"><i className="fas fa-times text-xs"></i></button>
+                                      <div className="flex gap-3 mb-4 items-center pr-2 mt-1">
+                                          <div className="flex flex-col items-center bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700 cursor-pointer shadow-inner" onClick={() => openSelector('order', role.id, null, index + 1)}>
+                                              <span className="text-[8px] text-slate-500 uppercase font-black tracking-widest">Gọi Đêm</span>
+                                              <span className={`text-xl font-black ${col.text}`}>{index + 1}</span>
+                                          </div>
+                                          <input type="text" value={role.name} onChange={(e) => updateRoleName(role.id, e.target.value)} className={`bg-transparent ${col.textBright} outline-none font-black text-xl flex-1 uppercase tracking-wide border-b-2 border-transparent focus:border-slate-700 pb-1`} placeholder="Tên vai trò" />
+                                      </div>
+                                      <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700">
+                                          <div className="flex justify-between items-center mb-3 px-1">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Kỹ năng Đặc biệt</label>
+                                              <button onClick={() => addAbility(role.id)} className={`${col.text} text-[10px] font-black bg-slate-700 px-2 py-1 rounded-md hover:bg-slate-600 transition`}><i className="fas fa-plus mr-1"></i> Thêm</button>
+                                          </div>
+                                          {(role.abilities||[]).map(ab => (
+                                              <div key={ab.id} className="flex flex-wrap gap-2 mb-2 items-center bg-slate-900 p-2 rounded-xl border border-slate-700">
+                                                  <input value={ab.name} onChange={(e) => updateAbility(role.id, ab.id, 'name', e.target.value)} className={`bg-transparent ${col.textBright} text-xs outline-none flex-1 min-w-[70px] font-bold border-b border-transparent focus:border-slate-600`} placeholder="Tên skill..." />
+                                                  <button onClick={() => openSelector('skillType', role.id, ab.id, ab.type)} className={`bg-slate-800 ${col.textBright} text-[9px] font-black px-2.5 py-1.5 rounded-lg border border-slate-600 truncate`}>{ab.type === 'nightly' ? 'M.Đêm' : 'Lần'}</button>
+                                                  {ab.type === 'limited' && <button onClick={() => openSelector('max', role.id, ab.id, ab.max)} className={`bg-slate-800 ${col.text} border border-slate-600 text-[10px] py-1.5 w-8 rounded-lg text-center font-black shadow-inner`} title="Số lần dùng">{ab.max}</button>}
+                                                  <div className={`flex items-center bg-slate-800 rounded-lg px-2 border border-slate-600 cursor-pointer py-1 shadow-inner`} title="Số lượng mục tiêu" onClick={() => openSelector('targetCount', role.id, ab.id, ab.targetCount || 1)}>
+                                                      <i className={`fas fa-users text-[8px] ${col.text} mr-1`}></i><span className={`${col.textBright} text-[10px] font-black`}>{ab.targetCount || 1}</span>
+                                                  </div>
+                                                  <button onClick={() => deleteAbility(role.id, ab.id)} className="text-red-500 px-2 ml-auto hover:text-red-400"><i className="fas fa-trash text-[10px]"></i></button>
+                                              </div>
+                                          ))}
+                                      </div>
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-slate-950 to-transparent pt-10 pointer-events-none">
+                          <button onClick={() => setStep('game')} className="w-full bg-indigo-600 py-4 rounded-2xl font-black text-xl text-white shadow-[0_10px_20px_rgba(79,70,229,0.5)] border-b-4 border-indigo-800 transform active:translate-y-1 transition pointer-events-auto flex items-center justify-center gap-3">
+                              <i className="fas fa-play"></i> BẮT ĐẦU GAME
+                          </button>
+                      </div>
+
+                      <BottomSheet isOpen={activeModal === 'library'} onClose={() => setActiveModal(null)} title="Thư Viện Role" icon="fa-book-open" fullHeight={true}>
+                          <button onClick={() => setActiveModal('createRole')} className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl mb-6 shadow-lg shrink-0 flex items-center justify-center gap-2"><i className="fas fa-hammer text-lg"></i> TẠO ROLE TUỲ CHỈNH</button>
+                          {renderRoleGroup('basic', 'villager', 'Phe Dân Làng')}
+                          {renderRoleGroup('basic', 'wolf', 'Phe Ma Sói')}
+                          {renderRoleGroup('advanced', 'villager', 'Dân Làng Nâng Cao')}
+                          {renderRoleGroup('advanced', 'wolf', 'Sói Nâng Cao')}
+                          {renderRoleGroup('advanced', 'third', 'Phe Thứ 3 (Độc Lập)')}
+                          {renderRoleGroup('custom', 'villager', 'Custom - Dân Làng')}
+                          {renderRoleGroup('custom', 'wolf', 'Custom - Ma Sói')}
+                          {renderRoleGroup('custom', 'third', 'Custom - Phe Thứ 3')}
+                      </BottomSheet>
+
+                      {activeModal === 'createRole' && <CreateCustomRoleModal onClose={() => setActiveModal('library')} onSave={handleCreateCustomRole} />}
+                      {activeSelector && <SelectorModal selector={activeSelector} rolesCount={roles.length} playerCount={playerCount} onClose={() => setActiveSelector(null)} onSelect={handleSelectorSelect} />}
+                  </div>
+              );
+          }
+
+          // ================= GIAO DIỆN GAME CHÍNH =================
+          return (
+              <div className="w-full h-screen max-w-lg mx-auto bg-slate-950 sm:border-x-2 sm:border-slate-800 shadow-2xl relative flex flex-col overflow-hidden">
+
+                  <TimerBoard settings={timerSettings} onOpenModal={setActiveModal} />
+                  <div className="text-center py-2 bg-slate-900 text-[10px] text-emerald-400 font-black border-b border-slate-800 uppercase tracking-[0.3em] shadow-sm z-10">Turn {nightCount}</div>
+
+                  <div className="flex-1 overflow-y-auto p-4 hide-scrollbar relative pb-32">
+                      <div className="grid grid-cols-2 gap-4">
+                          {sortedPlayers.map(player => (
+                              <PlayerCard
+                                  key={player.id} player={player} role={roleMap[player.roleId]}
+                                  actions={playerActionMap[player.id] || []} isFlipped={flippedCards[player.id]} viewMode={cardViewMode}
+                                  onFlip={handleCardFlip} onSelect={handleCardSelect} onUndoAction={handleUndoAction}
+                              />
+                          ))}
+                      </div>
+                  </div>
+
+                  <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-slate-950 to-transparent pt-12 flex justify-center gap-4 z-10 pointer-events-none">
+                      <button onClick={() => setActiveModal('assign')} className="flex-1 bg-slate-800 py-4 rounded-2xl font-black text-white text-sm shadow-xl border-2 border-slate-600 flex items-center justify-center transform active:translate-y-1 transition pointer-events-auto">
+                          <i className="fas fa-masks-theater text-xl mr-2 text-teal-400"></i> GÁN ROLE
+                      </button>
+                      <button onClick={startGlobalAction} className="flex-1 bg-indigo-600 py-4 rounded-2xl font-black text-white text-sm shadow-[0_10px_20px_rgba(79,70,229,0.5)] border-b-4 border-indigo-800 flex items-center justify-center transform active:translate-y-1 transition pointer-events-auto">
+                          <i className="fas fa-magic text-xl mr-2 text-white"></i> DÙNG CHIÊU
+                      </button>
+                  </div>
+
+                  {/* ================= BOTTOM SHEETS (GAME) ================= */}
+
+                  <BottomSheet isOpen={activeModal === 'assign'} onClose={() => {setActiveModal(null); setAssigningRole(null);}} title="Gọi Đêm & Gán Role" icon="fa-masks-theater" titleColor="text-teal-400" fullHeight={true}>
+                      <div className="flex-1 overflow-y-auto hide-scrollbar space-y-4 pb-4">
+                          {sortedRoles.map((role, index) => {
+                              const isExpanded = assigningRole === role.id;
+                              const pWithRole = players.filter(p => p.roleId === role.id);
+                              const col = getCol(role.faction);
+                              return (
+                                  <div key={role.id} className={`bg-slate-900 border-2 ${col.borderHalf} rounded-2xl overflow-hidden shadow-lg`}>
+                                      <button onClick={() => setAssigningRole(isExpanded ? null : role.id)} className={`w-full p-4 flex justify-between items-center transition ${isExpanded ? col.bgLight : ''}`}>
+                                          <div className="font-black text-left"><span className={`${col.text} mr-2 text-lg`}>#{index + 1}</span> <span className="text-white text-lg tracking-wide uppercase">{role.name}</span></div>
+                                          <div className="flex items-center gap-2">
+                                              {pWithRole.length > 0 && <div className="flex gap-1 overflow-x-auto hide-scrollbar max-w-[120px]">{pWithRole.map(p => <span key={p.id} className={`${col.badge} text-white text-[10px] px-2 py-1 rounded-md font-bold whitespace-nowrap`}>{p.name}</span>)}</div>}
+                                              <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} text-slate-500 ml-2`}></i>
+                                          </div>
+                                      </button>
+                                      {isExpanded && (
+                                          <div className="p-4 bg-slate-800 border-t-2 border-slate-700 grid grid-cols-3 gap-3">
+                                              {players.map(p => {
+                                                  const isSelected = p.roleId === role.id;
+                                                  const hasOtherRole = p.roleId !== 0 && !isSelected;
+                                                  return (
+                                                      <button key={p.id} onClick={() => togglePlayerRole(p.id, role.id)} disabled={hasOtherRole} className={`p-3 rounded-xl text-sm font-black border-2 flex flex-col items-center justify-center transition-all ${isSelected ? `${col.bgMain} ${col.borderSolid} text-white ${col.shadow}` : hasOtherRole ? 'bg-slate-900 border-slate-800 text-slate-600 opacity-40' : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600'}`}>
+                                                          <span className="truncate w-full text-center">{p.name}</span>
+                                                      </button>
+                                                  )
+                                              })}
+                                          </div>
+                                      )}
+                                  </div>
+                              )
+                          })}
+                      </div>
+                  </BottomSheet>
+
+                  {globalActionState && (
+                      <BottomSheet isOpen={true} onClose={() => setGlobalActionState(null)} title="Quản Lý Kỹ Năng" icon="fa-magic" titleColor="text-indigo-400" fullHeight={true}>
+                          {globalActionState.step === 1 && renderActionStep1()}
+                          {globalActionState.step === 2 && renderActionStep2()}
+                          {globalActionState.step === 3 && renderActionStep3()}
+                      </BottomSheet>
+                  )}
+
+                  {selectedPlayer && !globalActionState && (
+                      <BottomSheet isOpen={true} onClose={() => setSelectedPlayer(null)} title={players.find(p => p.id === selectedPlayer)?.name} icon="fa-user" titleColor="text-white">
+                          <div className="bg-slate-900 p-4 rounded-2xl border border-slate-700 mb-4 flex items-center justify-between">
+                              <div>
+                                  <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Trạng thái hiện tại</div>
+                                  <div className={`font-black text-xl ${players.find(p => p.id === selectedPlayer).alive ? 'text-emerald-400' : 'text-red-500'}`}>{players.find(p => p.id === selectedPlayer).alive ? 'ĐANG SỐNG' : 'ĐÃ TỬ VONG'}</div>
+                              </div>
+                              <i className={`fas ${players.find(p => p.id === selectedPlayer).alive ? 'fa-heart text-emerald-400/50' : 'fa-skull text-red-500/50'} text-4xl`}></i>
+                          </div>
+                          <button onClick={() => togglePlayerStatusFromModal(selectedPlayer)} className={`w-full py-5 rounded-2xl font-black text-xl mb-2 flex items-center justify-center gap-3 shadow-lg transform active:scale-95 transition ${players.find(p => p.id === selectedPlayer).alive ? 'bg-red-600 text-white border-b-4 border-red-800' : 'bg-emerald-600 text-white border-b-4 border-emerald-800'}`}>
+                              <i className={`fas ${players.find(p => p.id === selectedPlayer).alive ? 'fa-skull' : 'fa-heart'} text-2xl`}></i>
+                              ĐỔI THÀNH {players.find(p => p.id === selectedPlayer).alive ? 'CHẾT' : 'SỐNG'}
+                          </button>
+                      </BottomSheet>
+                  )}
+
+                  <BottomSheet isOpen={activeModal === 'history'} onClose={() => setActiveModal(null)} title="Nhật Ký Quản Trò" icon="fa-book" titleColor="text-slate-200" fullHeight={true}>
+                      <div className="flex-1 overflow-y-auto bg-slate-900 rounded-2xl p-4 pb-6 border-2 border-slate-800 shadow-inner">
+                          {gameHistory.length===0 && <p className="text-slate-500 text-center mt-10 font-bold"><i className="fas fa-wind text-4xl mb-4 block opacity-30"></i>Chưa có sự kiện nào được ghi nhận.</p>}
+                          {gameHistory.map(h => (
+                              <div key={h.night} className="mb-6 border-b-2 border-slate-800 pb-4 last:border-0">
+                                  <div className="text-white font-black text-sm mb-3 bg-indigo-600 inline-block px-3 py-1 rounded-lg shadow-md uppercase tracking-widest">TURN {h.night}</div>
+                                  <ul className="text-xs text-slate-300 space-y-2 ml-1">
+                                      {h.actionLogs.map(l => {
+                                          const col = getCol(l.faction);
+                                          return <li key={l.id} className="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex flex-wrap items-center gap-1.5"><span className="text-white font-bold">{players.find(p=>p.id===l.sourceId)?.name}</span> dùng <span className={`font-black uppercase tracking-wider px-2 py-0.5 rounded-md text-[9px] ${col.bgDark} ${col.textBright} border ${col.borderHalf}`}>{l.abilityName}</span> lên <span className="text-white font-bold">{players.find(p=>p.id===l.targetId)?.name}</span></li>
+                                      })}
+                                      {h.roleLogs.map((l,i) => {
+                                          const fCol = getCol(l.fromRoleId===0 ? 'villager' : roleMap[l.fromRoleId]?.faction);
+                                          const tCol = getCol(l.toRoleId===0 ? 'villager' : roleMap[l.toRoleId]?.faction);
+                                          return <li key={'r'+i} className="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex flex-wrap items-center gap-1.5"><span className="font-bold text-white mr-1">{players.find(p=>p.id===l.playerId)?.name}:</span> <span className={`line-through opacity-70 font-bold ${fCol.text}`}>{l.fromRoleId===0?'Dân Làng':roleMap[l.fromRoleId]?.name}</span> <i className="fas fa-arrow-right text-slate-500 text-[10px] mx-1"></i> <span className={`font-black ${tCol.textBright}`}>{l.toRoleId===0?'Dân Làng':roleMap[l.toRoleId]?.name}</span></li>
+                                      })}
+                                      {h.statusLogs.map((l,i) => <li key={'s'+i} className={`p-2.5 rounded-xl font-bold flex items-center gap-2 border ${l.toStatus?'text-emerald-400 bg-emerald-900/20 border-emerald-900/50':'text-red-400 bg-red-900/20 border-red-900/50'}`}><i className={`fas ${l.toStatus?'fa-heart':'fa-skull'} text-sm`}></i> <span>{players.find(p=>p.id===l.playerId)?.name} {l.toStatus?'đã hồi sinh':'đã tử vong'}</span></li>)}
+                                  </ul>
+                              </div>
+                          ))}
+                      </div>
+                  </BottomSheet>
+
+                  <BottomSheet isOpen={activeModal === 'night'} onClose={() => setActiveModal(null)} title={`Trời Sáng Rồi!`} icon="fa-sun" titleColor="text-amber-400">
+                      <p className="text-slate-300 font-bold mb-6 text-center text-sm">Bạn đã sẵn sàng kết thúc Turn {nightCount}?<br/><span className="text-slate-500 text-xs font-normal">Các tag kỹ năng sẽ được làm sạch. Lịch sử sẽ được lưu.</span></p>
+                      <div className="flex gap-3">
+                          <button onClick={handleNextNight} className="flex-1 py-4 bg-amber-500 text-amber-950 rounded-2xl font-black text-lg shadow-[0_5px_15px_rgba(245,158,11,0.4)] transform active:translate-y-1"><i className="fas fa-check mr-2"></i> QUA ĐÊM NGAY</button>
+                      </div>
+                  </BottomSheet>
+
+                  <BottomSheet isOpen={activeModal === 'reset'} onClose={() => setActiveModal('settings')} title="Xoá Bàn Chơi" icon="fa-bomb" titleColor="text-red-500">
+                      <div className="bg-red-950/50 border border-red-900 p-4 rounded-xl mb-6 text-center">
+                          <p className="text-sm text-red-200 font-bold mb-2">Trò chơi sẽ bị RESET toàn bộ!</p>
+                          <p className="text-xs text-red-400/80">Xoá sạch Role đang có trên bàn, xoá lịch sử game. Chỉ giữ lại Số lượng và Tên người chơi.</p>
+                      </div>
+                      <button onClick={resetGame} className="w-full py-4 bg-red-600 hover:bg-red-500 rounded-2xl font-black text-white text-lg shadow-lg transform active:translate-y-1"><i className="fas fa-power-off mr-2"></i> ĐỒNG Ý RESET</button>
+                  </BottomSheet>
+
+                  <BottomSheet isOpen={activeModal === 'settings'} onClose={() => setActiveModal(null)} title="Cài Đặt" icon="fa-cog" titleColor="text-white">
+                      <div className="space-y-6">
+                          <div className="bg-slate-900 p-4 rounded-2xl border border-slate-700">
+                              <label className="block text-slate-400 mb-3 font-bold text-xs uppercase tracking-widest"><i className="fas fa-eye mr-2"></i> Hiển Thị Thẻ</label>
+                              <div className="grid grid-cols-1 gap-2">
+                                  {[
+                                      {v: 'nameFirst', l: 'Lật thẻ (Tên ở mặt trước)'},
+                                      {v: 'roleFirst', l: 'Xem lén (Role ở mặt trước)'},
+                                      {v: 'both', l: 'Hiện tất cả (Không cần lật)'}
+                                  ].map(opt => (
+                                      <button key={opt.v} onClick={() => setCardViewMode(opt.v)} className={`p-3 rounded-xl font-bold text-sm text-left transition border-2 ${cardViewMode === opt.v ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
+                                          <i className={`fas fa-${cardViewMode === opt.v ? 'check-circle' : 'circle'} mr-2`}></i> {opt.l}
+                                      </button>
+                                  ))}
+                              </div>
+                          </div>
+
+                          <div className="bg-slate-900 p-4 rounded-2xl border border-slate-700 space-y-5">
+                              <div>
+                                  <label className="flex justify-between text-slate-400 mb-2 font-bold text-xs uppercase tracking-widest">
+                                      <span><i className="fas fa-comments mr-2"></i> Tranh Luận</span>
+                                      <span className="text-orange-400 text-sm">{timerSettings.debate}s</span>
+                                  </label>
+                                  <input type="range" min="10" max="300" step="10" value={timerSettings.debate} onChange={(e) => setTimerSettings({...timerSettings, debate: parseInt(e.target.value)})} className="w-full h-2 bg-slate-800 rounded-lg appearance-none accent-orange-500" />
+                              </div>
+                              <div className="border-t border-slate-800 pt-5">
+                                  <label className="flex justify-between text-slate-400 mb-2 font-bold text-xs uppercase tracking-widest">
+                                      <span><i className="fas fa-gavel mr-2"></i> Phán Quyết</span>
+                                      <span className="text-red-400 text-sm">{timerSettings.judgment}s</span>
+                                  </label>
+                                  <input type="range" min="10" max="120" step="5" value={timerSettings.judgment} onChange={(e) => setTimerSettings({...timerSettings, judgment: parseInt(e.target.value)})} className="w-full h-2 bg-slate-800 rounded-lg appearance-none accent-red-500" />
+                              </div>
+                          </div>
+
+                          <button onClick={() => setActiveModal('reset')} className="w-full py-4 bg-slate-800 border-2 border-red-900/50 text-red-400 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-red-900/20 transition">
+                              <i className="fas fa-bomb mr-2"></i> Reset Game Mới
+                          </button>
+                      </div>
+                  </BottomSheet>
+
+              </div>
+          );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<ErrorBoundary><App /></ErrorBoundary>);
+    </script>
+  </body>
+</html>

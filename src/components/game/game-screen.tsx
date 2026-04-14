@@ -1,0 +1,115 @@
+import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { useGameStore } from "../../store/game-store";
+import {
+  useRoleMap,
+  usePlayerActionMap,
+  useSortedPlayers,
+} from "../../store/game-store-selectors";
+import { TimerBoard } from "./timer-board";
+import { PlayerCard } from "./player-card";
+import { AssignRoleSheet } from "./assign-role-sheet";
+import { SkillSheet } from "./skill-sheet";
+import { PlayerActionSheet } from "./player-action-sheet";
+import { HistorySheet } from "./history-sheet";
+import { NightConfirmSheet } from "./night-confirm-sheet";
+import { SettingsSheet } from "./settings-sheet";
+
+type ModalType = "assign" | "skill" | "history" | "night" | "settings" | null;
+
+const EMPTY_ACTIONS: import("../../types/game").ActionLog[] = [];
+
+export function GameScreen() {
+  const { t } = useTranslation();
+  const nightCount = useGameStore((s) => s.nightCount);
+  const timerSettings = useGameStore((s) => s.timerSettings);
+  const cardViewMode = useGameStore((s) => s.cardViewMode);
+  const flippedCards = useGameStore((s) => s.flippedCards);
+  const flipCard = useGameStore((s) => s.flipCard);
+  const undoAction = useGameStore((s) => s.undoAction);
+
+  const sortedPlayers = useSortedPlayers();
+  const roleMap = useRoleMap();
+  const actionMap = usePlayerActionMap();
+
+  const [modal, setModal] = useState<ModalType>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
+
+  const openModal = useCallback((m: "history" | "night" | "settings") => {
+    setModal(m);
+  }, []);
+
+  const closeModal = useCallback(() => setModal(null), []);
+
+  const handleSelectPlayer = useCallback((id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedPlayer(id);
+  }, []);
+
+  const handleUndoAction = useCallback(
+    (actionId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      undoAction(actionId);
+    },
+    [undoAction],
+  );
+
+  return (
+    <div className="h-dvh flex flex-col md:flex-row bg-gray-100 dark:bg-slate-950">
+      {/* Timer sidebar/bar */}
+      <TimerBoard
+        settings={timerSettings}
+        nightCount={nightCount}
+        onOpenModal={openModal}
+      />
+
+      {/* Main player grid */}
+      <main className="flex-1 overflow-y-auto p-3 md:p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+          {sortedPlayers.map((player) => (
+            <PlayerCard
+              key={player.id}
+              player={player}
+              role={player.roleId ? roleMap.get(player.roleId) : undefined}
+              actions={actionMap.get(player.id) ?? EMPTY_ACTIONS}
+              isFlipped={!!flippedCards[player.id]}
+              viewMode={cardViewMode}
+              onFlip={flipCard}
+              onSelect={handleSelectPlayer}
+              onUndoAction={handleUndoAction}
+            />
+          ))}
+        </div>
+      </main>
+
+      {/* Floating action buttons */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-4 z-20 md:static md:translate-x-0 md:flex-col md:absolute md:bottom-4 md:left-4 md:gap-3">
+        <button
+          onClick={() => setModal("assign")}
+          className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-black rounded-full shadow-[0_5px_15px_rgba(16,185,129,0.4)] active:scale-95 transition uppercase text-sm"
+        >
+          <i className="fas fa-theater-masks mr-2" />
+          {t("game.assignRole")}
+        </button>
+        <button
+          onClick={() => setModal("skill")}
+          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black rounded-full shadow-[0_5px_15px_rgba(99,102,241,0.4)] active:scale-95 transition uppercase text-sm"
+        >
+          <i className="fas fa-wand-sparkles mr-2" />
+          {t("game.useSkill")}
+        </button>
+      </div>
+
+      {/* Sheets — replace strategy: only one open at a time */}
+      <AssignRoleSheet isOpen={modal === "assign"} onClose={closeModal} />
+      <SkillSheet isOpen={modal === "skill"} onClose={closeModal} />
+      <PlayerActionSheet
+        playerId={selectedPlayer}
+        onClose={() => setSelectedPlayer(null)}
+      />
+      <HistorySheet isOpen={modal === "history"} onClose={closeModal} />
+      <NightConfirmSheet isOpen={modal === "night"} onClose={closeModal} />
+      <SettingsSheet isOpen={modal === "settings"} onClose={closeModal} />
+    </div>
+  );
+}
