@@ -10,10 +10,12 @@ import { TimerBoard } from "./timer-board";
 import { PlayerCard } from "./player-card";
 import { AssignRoleSheet } from "./assign-role-sheet";
 import { SkillSheet } from "./skill-sheet";
+import type { SkillContext } from "./skill-sheet";
 import { PlayerActionSheet } from "./player-action-sheet";
 import { HistorySheet } from "./history-sheet";
 import { NightConfirmSheet } from "./night-confirm-sheet";
 import { SettingsSheet } from "./settings-sheet";
+import type { Ability } from "../../types/game";
 
 type ModalType = "assign" | "skill" | "history" | "night" | "settings" | null;
 
@@ -34,6 +36,7 @@ export function GameScreen() {
 
   const [modal, setModal] = useState<ModalType>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
+  const [skillContext, setSkillContext] = useState<SkillContext | null>(null);
 
   const openModal = useCallback((m: "history" | "night" | "settings") => {
     setModal(m);
@@ -54,6 +57,20 @@ export function GameScreen() {
     [undoAction],
   );
 
+  const handleUseSkill = useCallback(
+    (roleId: string, ability: Ability, e: React.MouseEvent) => {
+      e.stopPropagation();
+      setSkillContext({ ability, roleId });
+      setModal("skill");
+    },
+    [],
+  );
+
+  const closeSkillSheet = useCallback(() => {
+    setModal(null);
+    setSkillContext(null);
+  }, []);
+
   return (
     <div className="h-dvh flex flex-col md:flex-row bg-gray-100 dark:bg-slate-950">
       {/* Timer sidebar/bar */}
@@ -62,7 +79,10 @@ export function GameScreen() {
         nightCount={nightCount}
         onOpenModal={openModal}
         onOpenAssign={() => setModal("assign")}
-        onOpenSkill={() => setModal("skill")}
+        onOpenSkill={() => {
+          setSkillContext(null);
+          setModal("skill");
+        }}
       />
 
       {/* Main player grid */}
@@ -79,6 +99,7 @@ export function GameScreen() {
               onFlip={flipCard}
               onSelect={handleSelectPlayer}
               onUndoAction={handleUndoAction}
+              onUseSkill={handleUseSkill}
             />
           ))}
         </div>
@@ -94,7 +115,10 @@ export function GameScreen() {
           {t("game.assignRole")}
         </button>
         <button
-          onClick={() => setModal("skill")}
+          onClick={() => {
+            setSkillContext(null);
+            setModal("skill");
+          }}
           className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black rounded-2xl shadow-[0_5px_15px_rgba(99,102,241,0.4)] active:scale-95 transition uppercase text-xs"
         >
           <i className="fas fa-wand-sparkles mr-1.5" />
@@ -104,10 +128,19 @@ export function GameScreen() {
 
       {/* Sheets — replace strategy: only one open at a time */}
       <AssignRoleSheet isOpen={modal === "assign"} onClose={closeModal} />
-      <SkillSheet isOpen={modal === "skill"} onClose={closeModal} />
+      <SkillSheet
+        isOpen={modal === "skill"}
+        onClose={closeSkillSheet}
+        initialContext={skillContext}
+      />
       <PlayerActionSheet
         playerId={selectedPlayer}
         onClose={() => setSelectedPlayer(null)}
+        onUseSkill={(roleId, ability) => {
+          setSelectedPlayer(null);
+          setSkillContext({ ability, roleId });
+          setModal("skill");
+        }}
       />
       <HistorySheet isOpen={modal === "history"} onClose={closeModal} />
       <NightConfirmSheet isOpen={modal === "night"} onClose={closeModal} />

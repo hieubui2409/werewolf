@@ -5,6 +5,7 @@ import type {
   GameRole,
   ActionLog,
   CardViewMode,
+  Ability,
 } from "../../types/game";
 import { getFactionStyle } from "../../utils/faction-theme";
 import { tr } from "../../utils/i18n-helpers";
@@ -18,6 +19,7 @@ interface PlayerCardProps {
   onFlip: (id: number) => void;
   onSelect: (id: number, e: React.MouseEvent) => void;
   onUndoAction: (actionId: string, e: React.MouseEvent) => void;
+  onUseSkill: (roleId: string, ability: Ability, e: React.MouseEvent) => void;
 }
 
 function DeathWatermark() {
@@ -111,6 +113,7 @@ export const PlayerCard = memo(function PlayerCard({
   onFlip,
   onSelect,
   onUndoAction,
+  onUseSkill,
 }: PlayerCardProps) {
   const { t } = useTranslation();
   const isVillager = player.roleId === null;
@@ -151,13 +154,21 @@ export const PlayerCard = memo(function PlayerCard({
             {player.name}
           </div>
           {!isVillager && abilities.length > 0 && (
-            <div className="flex flex-col md:flex-row md:flex-wrap md:justify-center gap-1 mb-3">
+            <div
+              className="flex flex-col md:flex-row md:flex-wrap md:justify-center gap-1 mb-3"
+              onClick={(e) => e.stopPropagation()}
+            >
               {abilities.map((ab) => {
                 const used = player.abilityUsage[ab.id] || 0;
+                const exhausted = ab.type === "limited" && used >= ab.max;
                 return (
-                  <div
+                  <button
                     key={ab.id}
-                    className="text-[9px] font-bold border border-dashed border-gray-400 dark:border-white/30 rounded-lg bg-transparent py-1 px-1.5 flex justify-between md:justify-center items-center gap-1 text-gray-700 dark:text-white/80 w-full md:w-auto"
+                    onClick={(e) =>
+                      !exhausted && role && onUseSkill(role.id, ab, e)
+                    }
+                    disabled={exhausted}
+                    className={`text-[9px] font-bold border border-dashed rounded-lg py-1 px-1.5 flex justify-between md:justify-center items-center gap-1 w-full md:w-auto transition active:scale-95 ${exhausted ? "border-gray-300 dark:border-white/15 text-gray-400 dark:text-white/40 cursor-not-allowed" : "border-gray-400 dark:border-white/30 text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/10"}`}
                   >
                     <span className="truncate max-w-[70%]">
                       {tr(t, ab.nameKey, ab.name)}
@@ -169,7 +180,7 @@ export const PlayerCard = memo(function PlayerCard({
                         <i className="fas fa-moon text-[7px]" />
                       )}
                     </span>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -232,7 +243,10 @@ export const PlayerCard = memo(function PlayerCard({
           {roleName}
         </div>
       </div>
-      <div className="flex-1 flex flex-col md:flex-row md:flex-wrap md:justify-center justify-start text-center gap-1">
+      <div
+        className="flex-1 flex flex-col md:flex-row md:flex-wrap md:justify-center justify-start text-center gap-1"
+        onClick={(e) => e.stopPropagation()}
+      >
         {isVillager ? (
           <span className="text-[11px] text-gray-400 dark:text-white/50 italic font-bold">
             {t("game.noAbility", "Không kỹ năng")}
@@ -242,9 +256,13 @@ export const PlayerCard = memo(function PlayerCard({
             const used = player.abilityUsage[ab.id] || 0;
             const isDisabled = ab.type === "limited" && used >= ab.max;
             return (
-              <div
+              <button
                 key={ab.id}
-                className={`text-[10px] border border-dashed rounded-lg py-1 px-1.5 flex justify-between md:justify-center items-center gap-1 font-bold w-full md:w-auto ${isDisabled ? "bg-transparent border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/40" : "bg-transparent border-gray-500 dark:border-white/40 text-gray-800 dark:text-white"}`}
+                onClick={(e) =>
+                  !isDisabled && role && onUseSkill(role.id, ab, e)
+                }
+                disabled={isDisabled}
+                className={`text-[10px] border border-dashed rounded-lg py-1 px-1.5 flex justify-between md:justify-center items-center gap-1 font-bold w-full md:w-auto transition active:scale-95 ${isDisabled ? "bg-transparent border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/40 cursor-not-allowed" : "bg-transparent border-gray-500 dark:border-white/40 text-gray-800 dark:text-white hover:bg-white/10"}`}
               >
                 <span className="truncate max-w-[65%]">
                   {tr(t, ab.nameKey, ab.name)}
@@ -256,7 +274,7 @@ export const PlayerCard = memo(function PlayerCard({
                     <i className="fas fa-moon text-[8px]" />
                   )}
                 </span>
-              </div>
+              </button>
             );
           })
         )}

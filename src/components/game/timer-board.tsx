@@ -76,7 +76,7 @@ export const TimerBoard = memo(function TimerBoard({
               onClick={() => start(settings.debate, "debate")}
               className="py-2 px-4 md:w-full rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-1 bg-gradient-to-r from-orange-500 to-orange-700 text-white shadow-lg active:scale-95 transition"
             >
-              <i className="fas fa-play" /> {t("game.debate")}
+              <i className="fas fa-comments" /> {t("game.debate")}
             </button>
           </div>
           {/* Judgment timer */}
@@ -85,7 +85,7 @@ export const TimerBoard = memo(function TimerBoard({
               onClick={() => start(settings.judgment, "judgment")}
               className="py-2 px-4 md:w-full rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-1 bg-gradient-to-r from-red-600 to-red-800 text-white shadow-lg active:scale-95 transition"
             >
-              <i className="fas fa-play" /> {t("game.judgment")}
+              <i className="fas fa-gavel" /> {t("game.judgment")}
             </button>
           </div>
         </div>

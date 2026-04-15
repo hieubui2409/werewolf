@@ -10,6 +10,8 @@
   "game": {
     "assignRole": "Assign Role",
     "useSkill": "Use Skill",
+    "skills": "Skills",
+    "usedSkills": "Used",
     "turn": "Turn {{count}}",
     "endTurn": "End Turn {{count}}?",
     "alive": "ALIVE",

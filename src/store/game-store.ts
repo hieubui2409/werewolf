@@ -30,11 +30,16 @@ interface GameStore {
   roleTemplates: RoleTemplate[];
   roles: GameRole[];
   actionLog: ActionLog[];
-  statusChangeLog: { playerId: number; toStatus: boolean }[];
+  statusChangeLog: {
+    playerId: number;
+    toStatus: boolean;
+    timestamp: number;
+  }[];
   roleChangeLog: {
     playerId: number;
     fromRoleId: string | null;
     toRoleId: string | null;
+    timestamp: number;
   }[];
   gameHistory: TurnHistory[];
   nightCount: number;
@@ -119,12 +124,18 @@ export const useGameStore = create<GameStore>()(
           const existingIdx = s.statusChangeLog.findIndex(
             (l) => l.playerId === id,
           );
+          const now = Date.now();
           const newLog =
             existingIdx >= 0
               ? s.statusChangeLog.map((l, i) =>
-                  i === existingIdx ? { playerId: id, toStatus: newStatus } : l,
+                  i === existingIdx
+                    ? { playerId: id, toStatus: newStatus, timestamp: now }
+                    : l,
                 )
-              : [...s.statusChangeLog, { playerId: id, toStatus: newStatus }];
+              : [
+                  ...s.statusChangeLog,
+                  { playerId: id, toStatus: newStatus, timestamp: now },
+                ];
           return { players: newPlayers, statusChangeLog: newLog };
         }),
 
@@ -202,18 +213,26 @@ export const useGameStore = create<GameStore>()(
           const newRoleId =
             player.roleId === targetRoleId ? null : targetRoleId;
           const existing = s.roleChangeLog.find((l) => l.playerId === playerId);
+          const now = Date.now();
           let newLog;
           if (existing) {
             if (existing.fromRoleId === newRoleId)
               newLog = s.roleChangeLog.filter((l) => l.playerId !== playerId);
             else
               newLog = s.roleChangeLog.map((l) =>
-                l.playerId === playerId ? { ...l, toRoleId: newRoleId } : l,
+                l.playerId === playerId
+                  ? { ...l, toRoleId: newRoleId, timestamp: now }
+                  : l,
               );
           } else {
             newLog = [
               ...s.roleChangeLog,
-              { playerId, fromRoleId: player.roleId, toRoleId: newRoleId },
+              {
+                playerId,
+                fromRoleId: player.roleId,
+                toRoleId: newRoleId,
+                timestamp: now,
+              },
             ];
           }
           return {
@@ -249,6 +268,7 @@ export const useGameStore = create<GameStore>()(
           );
           const newHistory: TurnHistory = {
             night: s.nightCount,
+            endedAt: Date.now(),
             actionLogs: actionsThisTurn,
             statusLogs: [...s.statusChangeLog],
             roleLogs: [...s.roleChangeLog],

@@ -52,16 +52,19 @@ export interface ActionLog {
   abilityNameKey?: string; // i18n key
   abilityType: AbilityType;
   faction: Faction;
+  timestamp: number; // Date.now()
 }
 
 export interface TurnHistory {
   night: number;
+  endedAt: number; // Date.now() when turn ended
   actionLogs: ActionLog[];
-  statusLogs: { playerId: number; toStatus: boolean }[];
+  statusLogs: { playerId: number; toStatus: boolean; timestamp: number }[];
   roleLogs: {
     playerId: number;
     fromRoleId: string | null;
     toRoleId: string | null;
+    timestamp: number;
   }[];
 }
 

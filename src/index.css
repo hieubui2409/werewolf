@@ -1,7 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=Bungee&family=Roboto:wght@400;500;700&display=swap");
 @import "tailwindcss";
 @import "@fortawesome/fontawesome-free/css/all.min.css";
-
-@import url("https://fonts.googleapis.com/css2?family=Bungee&family=Roboto:wght@400;500;700&display=swap");
 
 /* Fix 1: Enable class-based dark mode for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));

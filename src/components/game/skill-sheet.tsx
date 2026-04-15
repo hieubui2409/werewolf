@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useGameStore } from "../../store/game-store";
 import { useSortedRoles } from "../../store/game-store-selectors";
@@ -7,9 +7,15 @@ import { getFactionStyle } from "../../utils/faction-theme";
 import { tr } from "../../utils/i18n-helpers";
 import type { Ability } from "../../types/game";
 
+export interface SkillContext {
+  ability: Ability;
+  roleId: string;
+}
+
 interface SkillSheetProps {
   isOpen: boolean;
   onClose: () => void;
+  initialContext?: SkillContext | null;
 }
 
 interface WizardState {
@@ -30,7 +36,11 @@ const INITIAL_STATE: WizardState = {
   possibleSources: [],
 };
 
-export function SkillSheet({ isOpen, onClose }: SkillSheetProps) {
+export function SkillSheet({
+  isOpen,
+  onClose,
+  initialContext,
+}: SkillSheetProps) {
   const { t } = useTranslation();
   const sortedRoles = useSortedRoles();
   const players = useGameStore((s) => s.players);
@@ -44,29 +54,39 @@ export function SkillSheet({ isOpen, onClose }: SkillSheetProps) {
     onClose();
   }, [onClose]);
 
-  const selectAbility = (ability: Ability, roleId: string) => {
-    const capable = players.filter((p) => p.roleId === roleId && p.alive);
-    if (capable.length === 0) return;
-    if (capable.length === 1) {
-      setWizard({
-        step: 3,
-        ability,
-        roleId,
-        sourceId: capable[0].id,
-        targets: [],
-        possibleSources: [],
-      });
-    } else {
-      setWizard({
-        step: 2,
-        ability,
-        roleId,
-        sourceId: null,
-        targets: [],
-        possibleSources: capable,
-      });
+  const selectAbility = useCallback(
+    (ability: Ability, roleId: string) => {
+      const capable = players.filter((p) => p.roleId === roleId && p.alive);
+      if (capable.length === 0) return;
+      if (capable.length === 1) {
+        setWizard({
+          step: 3,
+          ability,
+          roleId,
+          sourceId: capable[0].id,
+          targets: [],
+          possibleSources: [],
+        });
+      } else {
+        setWizard({
+          step: 2,
+          ability,
+          roleId,
+          sourceId: null,
+          targets: [],
+          possibleSources: capable,
+        });
+      }
+    },
+    [players],
+  );
+
+  // Auto-select ability when opened with initialContext (from card chip click)
+  useEffect(() => {
+    if (isOpen && initialContext) {
+      selectAbility(initialContext.ability, initialContext.roleId);
     }
-  };
+  }, [isOpen, initialContext, selectAbility]);
 
   const selectSource = (sourceId: number) => {
     setWizard((prev) => ({ ...prev, step: 3, sourceId }));
@@ -136,25 +156,25 @@ export function SkillSheet({ isOpen, onClose }: SkillSheetProps) {
                   <span className={`font-bold ${style.textBright}`}>
                     {tr(t, role.nameKey, role.name)}
                   </span>
-                  <span className="text-[10px] text-gray-400 dark:text-slate-500">
-                    {allAssigned.length > 0
-                      ? allAssigned
-                          .map((p) => (
-                            <span
-                              key={p.id}
-                              className={
-                                !p.alive ? "line-through opacity-50" : ""
-                              }
-                            >
-                              {p.name}
-                            </span>
-                          ))
-                          .reduce<React.ReactNode[]>(
-                            (acc, el, i) =>
-                              i === 0 ? [el] : [...acc, ", ", el],
-                            [],
-                          )
-                      : "—"}
+                  <span className="flex flex-wrap gap-1 items-center">
+                    {allAssigned.length > 0 ? (
+                      allAssigned.map((p) => (
+                        <span
+                          key={p.id}
+                          className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${
+                            !p.alive
+                              ? "line-through bg-gray-200/60 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500"
+                              : "bg-gray-200 dark:bg-slate-600 text-gray-600 dark:text-slate-200"
+                          }`}
+                        >
+                          {p.name}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-[10px] text-gray-400 dark:text-slate-500">
+                        —
+                      </span>
+                    )}
                   </span>
                 </button>
                 {isExpanded && (

@@ -163,6 +163,7 @@ export function executeAction(
   });
 
   const executionId = ++_counter;
+  const now = Date.now();
   const newActions: ActionLog[] = targets.map((targetId) => ({
     id: uid(),
     executionId,
@@ -174,6 +175,7 @@ export function executeAction(
     abilityNameKey: ability.nameKey,
     abilityType: ability.type,
     faction,
+    timestamp: now,
   }));
 
   return {
