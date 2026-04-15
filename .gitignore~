@@ -8,6 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+dist
+dist-ssr
+*.local
 
 # Editor directories and files
 .vscode/*
@@ -23,6 +26,10 @@ node_modules
 # Test results
 test-results/
 playwright-report/
+
+# Plans & notes (dev-only)
+plans/
+NOTES.md
 
 # Claude
 .claude/

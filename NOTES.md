@@ -1,0 +1,16 @@
+- - Fix flip card (Screenshot)
+  - Fix card grid size (try to fill remaining screen height first (min height will be more than current), then scrollable)
+  - Fix Role first card view mode
+  - Fix button -> Title tranh luận/phán quyết (Vi language)
+  - Fix Dead card effect
+  - Fix Assign Role / use skill button, Judge, Debate positions on landscape screen
+  - Fix Debate/Judge button shape (style)
+  - Fix Reset gamne does not add default role
+  - Fix align item to screen in both landscape and poistrait mode (Content does not fill screen, may be component is to small,...)
+  - Fix call priority (Now use priority in library but when add, must use 1, 2,...m [number of roles]
+  - Skill validations not work (Duplicate name,...)
+  - Fix light theme switch not work
+  - Fix Use skill bottom sheet dies not show correctly (some roles show player name, some not)
+  - Add agentations to dev dependency
+  - Do not show fix skills used on players name card side, show only on role card side or on mode show all
+  - Change history to redo/undo/change per actions
