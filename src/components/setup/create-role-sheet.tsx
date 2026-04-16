@@ -1,24 +1,22 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Sparkles, Trash2, Plus, Check } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import { BottomSheet } from "../common/bottom-sheet";
 import { MAX_ABILITIES_PER_ROLE } from "../../data/default-roles";
 import type { Faction, Ability } from "../../types/game";
+import { uid } from "../../utils/uid";
 
 interface CreateRoleSheetProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const FACTION_OPTIONS: { value: Faction; label: string; color: string }[] = [
-  { value: "villager", label: "Dân", color: "bg-blue-600" },
-  { value: "wolf", label: "Sói", color: "bg-red-600" },
-  { value: "third", label: "Phe 3", color: "bg-purple-600" },
+const FACTION_OPTIONS: { value: Faction; labelKey: string; color: string }[] = [
+  { value: "villager", labelKey: "factions.villager", color: "bg-blue-600" },
+  { value: "wolf", labelKey: "factions.wolf", color: "bg-red-600" },
+  { value: "third", labelKey: "factions.third", color: "bg-purple-600" },
 ];
-
-function uid(): string {
-  return `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-}
 
 export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
   const { t } = useTranslation();
@@ -98,14 +96,14 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
       isOpen={isOpen}
       onClose={onClose}
       title={t("setup.createCustomRole")}
-      icon="fa-wand-magic-sparkles"
+      icon={<Sparkles size={20} />}
       fullHeight
     >
       {/* Errors */}
       {errors.length > 0 && (
         <div
           role="alert"
-          className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-3 mb-4 text-xs text-red-700 dark:text-red-300"
+          className="bg-red-900/30 border border-red-700 rounded-lg p-3 mb-4 text-xs text-red-400"
         >
           {errors.map((e, i) => (
             <p key={i}>{e}</p>
@@ -117,7 +115,7 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
       <div className="mb-4">
         <label
           htmlFor="role-name"
-          className="text-xs font-bold text-gray-600 dark:text-slate-400 uppercase mb-1 block"
+          className="text-xs font-bold text-text-secondary uppercase mb-1 block"
         >
           {t("setup.roleName", "Tên Role")}
         </label>
@@ -127,7 +125,7 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={t("setup.roleNamePlaceholder", "VD: Thợ Rèn")}
-          className="w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none text-gray-900 dark:text-white"
+          className="w-full bg-bg-elevated border border-border-default rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none text-text-primary"
           required
           aria-required="true"
         />
@@ -135,7 +133,7 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
 
       {/* Faction */}
       <div className="mb-4">
-        <p className="text-xs font-bold text-gray-600 dark:text-slate-400 uppercase mb-2">
+        <p className="text-xs font-bold text-text-secondary uppercase mb-2">
           {t("setup.faction", "Phe")}
         </p>
         <div className="grid grid-cols-3 gap-2">
@@ -146,10 +144,10 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
               className={`py-2 rounded-lg font-bold text-sm transition ${
                 faction === opt.value
                   ? `${opt.color} text-white shadow-lg`
-                  : "bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-400"
+                  : "bg-bg-elevated text-text-secondary"
               }`}
             >
-              {opt.label}
+              {t(opt.labelKey)}
             </button>
           ))}
         </div>
@@ -157,7 +155,7 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
 
       {/* Abilities */}
       <div className="mb-4 flex-1">
-        <p className="text-xs font-bold text-gray-600 dark:text-slate-400 uppercase mb-2">
+        <p className="text-xs font-bold text-text-secondary uppercase mb-2">
           {t("setup.abilities", "Kỹ Năng")} ({abilities.length}/
           {MAX_ABILITIES_PER_ROLE})
         </p>
@@ -165,7 +163,7 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
           {abilities.map((ab, i) => (
             <div
               key={ab.id}
-              className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3 border border-gray-200 dark:border-slate-700"
+              className="bg-bg-elevated rounded-lg p-3 border border-border-default"
             >
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-[10px] font-bold text-gray-400 w-4">
@@ -176,14 +174,14 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
                   value={ab.name}
                   onChange={(e) => updateAb(ab.id, "name", e.target.value)}
                   placeholder={t("setup.abilityNamePlaceholder", "Tên kỹ năng")}
-                  className="flex-1 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                  className="flex-1 bg-bg-card border border-border-default rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 text-text-primary"
                   required
                 />
                 <button
                   onClick={() => removeAb(ab.id)}
                   className="text-red-400 hover:text-red-600 p-1"
                 >
-                  <i className="fas fa-trash-alt text-xs" />
+                  <Trash2 size={14} />
                 </button>
               </div>
               <div className="flex gap-2 ml-6">
@@ -195,9 +193,11 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
                       ab.type === "nightly" ? "limited" : "nightly",
                     )
                   }
-                  className="bg-gray-200 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-[10px] font-bold text-gray-700 dark:text-slate-300"
+                  className="bg-bg-elevated border border-border-default rounded px-2 py-1 text-[10px] font-bold text-text-secondary"
                 >
-                  {ab.type === "nightly" ? "Đêm" : "Lần"}
+                  {ab.type === "nightly"
+                    ? t("ability.night", "Đêm")
+                    : t("ability.limited", "Lần")}
                 </button>
                 {ab.type === "limited" && (
                   <input
@@ -208,7 +208,7 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
                     onChange={(e) =>
                       updateAb(ab.id, "max", parseInt(e.target.value) || 1)
                     }
-                    className="w-12 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-[10px] text-center text-gray-900 dark:text-white"
+                    className="w-12 bg-bg-card border border-border-default rounded px-2 py-1 text-[10px] text-center text-text-primary"
                   />
                 )}
                 <input
@@ -223,7 +223,7 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
                       parseInt(e.target.value) || 1,
                     )
                   }
-                  className="w-12 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-[10px] text-center text-gray-900 dark:text-white"
+                  className="w-12 bg-bg-card border border-border-default rounded px-2 py-1 text-[10px] text-center text-text-primary"
                   aria-label="Target count"
                 />
               </div>
@@ -235,7 +235,7 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
             onClick={addAbilityRow}
             className="mt-2 text-xs text-indigo-500 font-bold hover:underline"
           >
-            <i className="fas fa-plus mr-1" />
+            <Plus size={12} className="mr-1 inline" />
             {t("setup.addAbility", "Thêm kỹ năng")}
           </button>
         )}
@@ -246,7 +246,7 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
         onClick={handleSave}
         className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-sm uppercase rounded-xl shadow-lg transition active:scale-[0.98] mt-auto"
       >
-        <i className="fas fa-check mr-2" />
+        <Check size={16} className="mr-2 inline" />
         {t("common.save")}
       </button>
     </BottomSheet>

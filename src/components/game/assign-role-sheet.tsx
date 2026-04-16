@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Drama, ChevronUp, ChevronDown } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import { useSortedRoles } from "../../store/game-store-selectors";
 import { BottomSheet } from "../common/bottom-sheet";
@@ -23,7 +24,7 @@ export function AssignRoleSheet({ isOpen, onClose }: AssignRoleSheetProps) {
       isOpen={isOpen}
       onClose={onClose}
       title={t("game.assignRole")}
-      icon="fa-theater-masks"
+      icon={<Drama size={20} />}
       fullHeight
     >
       <div className="space-y-2">
@@ -35,7 +36,7 @@ export function AssignRoleSheet({ isOpen, onClose }: AssignRoleSheetProps) {
           return (
             <div
               key={role.id}
-              className="rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden"
+              className="rounded-xl border border-border-default overflow-hidden"
             >
               <button
                 onClick={() => setExpandedRoleId(isExpanded ? null : role.id)}
@@ -60,14 +61,16 @@ export function AssignRoleSheet({ isOpen, onClose }: AssignRoleSheetProps) {
                       {assignedPlayers.length}
                     </span>
                   )}
-                  <i
-                    className={`fas fa-chevron-${isExpanded ? "up" : "down"} text-xs text-gray-400 dark:text-slate-500`}
-                  />
+                  {isExpanded ? (
+                    <ChevronUp size={14} className="text-text-muted" />
+                  ) : (
+                    <ChevronDown size={14} className="text-text-muted" />
+                  )}
                 </div>
               </button>
 
               {isExpanded && (
-                <div className="p-3 grid grid-cols-4 gap-2 bg-gray-50 dark:bg-slate-800/50">
+                <div className="p-3 grid grid-cols-4 gap-2 bg-bg-elevated/50">
                   {players.map((p) => {
                     const isAssigned = p.roleId === role.id;
                     const hasOtherRole =
@@ -81,8 +84,8 @@ export function AssignRoleSheet({ isOpen, onClose }: AssignRoleSheetProps) {
                           isAssigned
                             ? `${style.bg} text-white ${style.shadow}`
                             : hasOtherRole
-                              ? "bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 opacity-40 cursor-not-allowed"
-                              : "bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-600"
+                              ? "bg-bg-elevated text-text-muted opacity-40 cursor-not-allowed"
+                              : "bg-bg-card text-text-secondary border border-border-default"
                         }`}
                         aria-pressed={isAssigned}
                       >

@@ -46,8 +46,8 @@ describe("BottomSheet", () => {
       </BottomSheet>,
     );
 
-    // Click the overlay background
-    const overlay = container.querySelector("div[aria-label='Close']");
+    // Click the overlay background (the outer div with aria-hidden="true")
+    const overlay = container.querySelector("div[aria-hidden='true']");
     if (overlay && overlay instanceof HTMLElement) {
       fireEvent.click(overlay);
     }
@@ -87,7 +87,7 @@ describe("BottomSheet", () => {
       </BottomSheet>,
     );
 
-    const closeButton = screen.getByRole("button", { name: /close/i });
+    const closeButton = screen.getByLabelText("Close");
     fireEvent.click(closeButton);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
@@ -111,7 +111,7 @@ describe("BottomSheet", () => {
         isOpen={true}
         onClose={mockOnClose}
         title="Test Title"
-        icon="fa-star"
+        icon={<span data-testid="test-icon">★</span>}
       >
         <div>Content</div>
       </BottomSheet>,
@@ -121,8 +121,7 @@ describe("BottomSheet", () => {
     expect(titleElement).toHaveAttribute("id", "sheet-title");
     expect(titleElement).toBeInTheDocument();
 
-    // Check that icon element is rendered with fa-star class
-    const iconElement = titleElement.querySelector("i.fa-star");
+    const iconElement = screen.getByTestId("test-icon");
     expect(iconElement).toBeInTheDocument();
   });
 

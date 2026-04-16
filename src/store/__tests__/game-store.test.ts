@@ -119,10 +119,12 @@ describe("game-store: Zustand Store Integration", () => {
       state.togglePlayerStatus(1);
       const newState = useGameStore.getState();
       expect(newState.statusChangeLog).toHaveLength(1);
-      expect(newState.statusChangeLog[0]).toEqual({
-        playerId: 1,
-        toStatus: false,
-      });
+      expect(newState.statusChangeLog[0]).toEqual(
+        expect.objectContaining({
+          playerId: 1,
+          toStatus: false,
+        }),
+      );
     });
 
     it("updates statusChangeLog when toggled again", () => {
@@ -182,11 +184,13 @@ describe("game-store: Zustand Store Integration", () => {
       state.togglePlayerRole(1, roleId);
       const newState = useGameStore.getState();
       expect(newState.roleChangeLog).toHaveLength(1);
-      expect(newState.roleChangeLog[0]).toEqual({
-        playerId: 1,
-        fromRoleId: null,
-        toRoleId: roleId,
-      });
+      expect(newState.roleChangeLog[0]).toEqual(
+        expect.objectContaining({
+          playerId: 1,
+          fromRoleId: null,
+          toRoleId: roleId,
+        }),
+      );
     });
 
     it("removes roleChangeLog entry when returning to original role", () => {
@@ -643,7 +647,7 @@ describe("game-store: Zustand Store Integration", () => {
       const state = useGameStore.getState();
       state.flipCard(1);
       state.flipCard(1);
-      expect(useGameStore.getState().flippedCards[1]).toBe(false);
+      expect(useGameStore.getState().flippedCards[1]).toBeUndefined();
     });
 
     it("flips multiple cards independently", () => {

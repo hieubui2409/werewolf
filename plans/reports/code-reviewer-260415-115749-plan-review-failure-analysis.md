@@ -65,14 +65,14 @@
 - **Severity:** Medium
 - **Location:** Phase 2, P6 "Persist serializes roleTemplates + unbounded gameHistory"
 - **Flaw:** P6 caps `gameHistory` to 50 games in `partialize`. But `actionLog` (which grows unboundedly within a single game session) is also persisted and is NOT capped. A single long game with 15+ nights and many multi-target abilities could accumulate hundreds of action log entries, all serialized to localStorage on every state mutation via Zustand persist. The plan does not address `actionLog` growth within a session. Additionally, capping at 50 games in `partialize` means the in-memory state still has all games — it's only the serialized version that's capped. If the user never refreshes during a marathon session, memory grows unbounded.
-- **Failure scenario:** Power user plays a 20-night game with 15 players and 4 abilities per night. That's potentially 15 * 20 = 300 action log entries. Every Zustand `set()` call serializes the entire `actionLog` array to localStorage. On low-end mobile, this causes jank on every state mutation.
+- **Failure scenario:** Power user plays a 20-night game with 15 players and 4 abilities per night. That's potentially 15 \* 20 = 300 action log entries. Every Zustand `set()` call serializes the entire `actionLog` array to localStorage. On low-end mobile, this causes jank on every state mutation.
 - **Evidence:** Phase 2, P6 fix: "Cap `gameHistory` to last 50 games in `partialize`." The `partialize` at line 326-338 includes `actionLog: state.actionLog` with no cap. `actionLog` is filtered in `nextNight()` (line 290: keeps only `limited` type) but not within a night.
 - **Suggested fix:** Acknowledge `actionLog` growth as a known limitation or cap it (e.g., last 500 entries). More importantly, consider throttling or debouncing localStorage writes rather than writing on every `set()`.
 
 ## Finding 8: Plan assumes `crypto.randomUUID()` availability (M2) without checking browser support — same class of bug as H3 (Safari polyfill)
 
 - **Severity:** Medium
-- **Location:** Phase 1, M2 "_counter resets on reload — executionId collision"
+- **Location:** Phase 1, M2 "\_counter resets on reload — executionId collision"
 - **Flaw:** The plan proposes replacing `_counter` with `crypto.randomUUID()`. While `crypto.randomUUID()` is widely supported in modern browsers, it requires a secure context (HTTPS or localhost). PWA apps served over HTTP during development or in certain WebView contexts will throw. The plan already identifies Safari compatibility as an issue (H3 requestIdleCallback polyfill) but does not apply the same defensive thinking to `crypto.randomUUID()`. The existing `uid()` function at line 50 already uses `Date.now()` + `Math.random()` which works everywhere.
 - **Failure scenario:** Developer serves PWA over HTTP for testing (common with `vite --host` on local network for mobile testing). `crypto.randomUUID()` is undefined or throws in non-secure context. Every `executeAction` call crashes.
 - **Evidence:** Phase 1, M2: "Replace `_counter` with `crypto.randomUUID()` for collision-free IDs." Line 50 already has `uid()` using `Date.now()` + `Math.random()`. Phase 1, H3 explicitly polyfills `requestIdleCallback` for Safari — same defensive approach not applied to `crypto.randomUUID()`.

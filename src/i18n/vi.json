@@ -5,7 +5,9 @@
     "roles": "Vai Trò",
     "library": "Thư Viện",
     "startGame": "BẮT ĐẦU GAME",
-    "createCustomRole": "TẠO ROLE TÙY CHỈNH"
+    "createCustomRole": "TẠO ROLE TÙY CHỈNH",
+    "confirmDeleteRole": "Xóa vai {{name}}? Các người chơi đã gán sẽ mất vai.",
+    "noTarget": "0"
   },
   "game": {
     "assignRole": "Gán Role",
@@ -130,6 +132,29 @@
     "copyRole": "Sao chép",
     "peek": "Rình mò",
     "drain": "Hút máu"
+  },
+  "ability": {
+    "skill": "kỹ năng",
+    "passive": "bị động",
+    "night": "Đêm",
+    "limited": "Lần"
+  },
+  "factions": {
+    "villager": "Dân",
+    "wolf": "Sói",
+    "third": "Phe 3"
+  },
+  "history": {
+    "current": "Hiện tại",
+    "pastTurns": "Lượt Trước",
+    "actions": "hành động"
+  },
+  "pwa": {
+    "updatePrompt": "Có bản cập nhật mới. Tải lại?",
+    "newMoon": "Trăng mới mọc...",
+    "updateAvailable": "Bản cập nhật mới đã sẵn sàng!",
+    "updateNow": "Cập nhật ngay",
+    "later": "Để sau"
   },
   "library": {
     "basicVillager": "Dân Cơ Bản",

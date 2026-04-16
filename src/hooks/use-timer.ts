@@ -21,37 +21,53 @@ export function useTimer() {
   const [timer, setTimer] = useState<TimerState>(INITIAL_STATE);
   const timerRef = useRef<number | null>(null);
 
-  const start = useCallback((seconds: number, type: "debate" | "judgment") => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setTimer({
-      active: true,
-      value: seconds,
-      initial: seconds,
-      type,
-      paused: false,
-    });
-    const id = window.setInterval(() => {
-      setTimer((prev) => {
-        if (prev.paused) return prev;
-        if (prev.value <= 1) {
-          clearInterval(id);
-          timerRef.current = null;
-          return { ...prev, value: 0, active: false };
-        }
-        return { ...prev, value: prev.value - 1 };
-      });
-    }, 1000);
-    timerRef.current = id;
+  // C3: Defensive clear — always clear before creating new interval
+  const clearTimer = useCallback(() => {
+    if (timerRef.current !== null) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
   }, []);
+
+  const start = useCallback(
+    (seconds: number, type: "debate" | "judgment") => {
+      clearTimer();
+      setTimer({
+        active: true,
+        value: seconds,
+        initial: seconds,
+        type,
+        paused: false,
+      });
+      const id = window.setInterval(() => {
+        setTimer((prev) => {
+          if (!prev.active) {
+            clearInterval(id);
+            timerRef.current = null;
+            return prev;
+          }
+          if (prev.paused) return prev;
+          if (prev.value <= 1) {
+            clearInterval(id);
+            timerRef.current = null;
+            return { ...prev, value: 0, active: false };
+          }
+          return { ...prev, value: prev.value - 1 };
+        });
+      }, 1000);
+      timerRef.current = id;
+    },
+    [clearTimer],
+  );
 
   const togglePause = useCallback(() => {
     setTimer((prev) => ({ ...prev, paused: !prev.paused }));
   }, []);
 
   const stop = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
+    clearTimer();
     setTimer(INITIAL_STATE);
-  }, []);
+  }, [clearTimer]);
 
   // Sound integration
   useEffect(() => {
@@ -62,7 +78,7 @@ export function useTimer() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current !== null) clearInterval(timerRef.current);
     };
   }, []);
 

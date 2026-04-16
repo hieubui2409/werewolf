@@ -12,10 +12,12 @@ import type {
   Faction,
 } from "../types/game";
 import { DEFAULT_ROLES } from "../data/default-roles";
+import { uid } from "../utils/uid";
 import {
   createInitialPlayers,
   createInitialRoles,
   handlePlayerCountChange as calcPlayerCount,
+  cleanupPlayerReferences,
   addRoleFromTemplate as calcAddRole,
   createCustomRole as calcCreateCustomRole,
   changeRoleOrder as calcChangeOrder,
@@ -81,6 +83,7 @@ interface GameStore {
   flipCard: (id: number) => void;
   setCardViewMode: (mode: CardViewMode) => void;
   setTimerSettings: (settings: TimerSettings) => void;
+  deleteCustomTemplate: (templateId: string) => void;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -103,10 +106,23 @@ export const useGameStore = create<GameStore>()(
       setStep: (step) => set({ step }),
 
       handlePlayerCountChange: (newCount) =>
-        set((s) => ({
-          playerCount: newCount,
-          players: calcPlayerCount(s.players, newCount),
-        })),
+        set((s) => {
+          const newPlayers = calcPlayerCount(s.players, newCount);
+          if (newCount < s.players.length) {
+            const removedIds = new Set(
+              s.players.slice(newCount).map((p) => p.id),
+            );
+            const cleaned = cleanupPlayerReferences(
+              removedIds,
+              s.actionLog,
+              s.statusChangeLog,
+              s.roleChangeLog,
+              s.flippedCards,
+            );
+            return { playerCount: newCount, players: newPlayers, ...cleaned };
+          }
+          return { playerCount: newCount, players: newPlayers };
+        }),
 
       updatePlayerName: (id, name) =>
         set((s) => ({
@@ -157,7 +173,15 @@ export const useGameStore = create<GameStore>()(
         set((s) => ({ roles: calcChangeOrder(s.roles, roleId, newPosition) })),
 
       deleteRole: (id) =>
-        set((s) => ({ roles: s.roles.filter((r) => r.id !== id) })),
+        set((s) => ({
+          roles: s.roles.filter((r) => r.id !== id),
+          players: s.players.map((p) =>
+            p.roleId === id ? { ...p, roleId: null } : p,
+          ),
+          roleChangeLog: s.roleChangeLog.filter(
+            (l) => l.fromRoleId !== id && l.toRoleId !== id,
+          ),
+        })),
 
       addAbility: (roleId) =>
         set((s) => ({
@@ -168,8 +192,8 @@ export const useGameStore = create<GameStore>()(
                   abilities: [
                     ...r.abilities,
                     {
-                      id: `ab_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-                      name: "Kỹ năng",
+                      id: `ab_${uid()}`,
+                      name: "Ability",
                       type: "nightly" as const,
                       max: 1,
                       targetCount: 1,
@@ -247,7 +271,7 @@ export const useGameStore = create<GameStore>()(
         set((s) => {
           const role = s.roles.find((r) => r.id === roleId);
           const faction = role?.faction ?? "villager";
-          return calcExecuteAction(
+          const result = calcExecuteAction(
             s.players,
             s.actionLog,
             sourceId,
@@ -256,6 +280,8 @@ export const useGameStore = create<GameStore>()(
             faction,
             s.nightCount,
           );
+          if (result.blocked) return s;
+          return { players: result.players, actionLog: result.actionLog };
         }),
 
       undoAction: (actionId) =>
@@ -273,15 +299,16 @@ export const useGameStore = create<GameStore>()(
             statusLogs: [...s.statusChangeLog],
             roleLogs: [...s.roleChangeLog],
           };
-          // Reset nightly ability usage
+          // Reset nightly ability usage — O(P) with pre-built role map
+          const roleById = new Map(s.roles.map((r) => [r.id, r]));
           const newPlayers = s.players.map((p) => {
             if (!p.roleId) return p;
-            const role = s.roles.find((r) => r.id === p.roleId);
+            const role = roleById.get(p.roleId);
             if (!role) return p;
             const newUsage = { ...p.abilityUsage };
-            role.abilities.forEach((ab) => {
+            for (const ab of role.abilities) {
               if (ab.type === "nightly") newUsage[ab.id] = 0;
-            });
+            }
             return { ...p, abilityUsage: newUsage };
           });
           return {
@@ -313,26 +340,91 @@ export const useGameStore = create<GameStore>()(
         })),
 
       flipCard: (id) =>
-        set((s) => ({
-          flippedCards: { ...s.flippedCards, [id]: !s.flippedCards[id] },
-        })),
+        set((s) => {
+          const current = s.flippedCards[id];
+          if (current) {
+            const { [id]: _, ...rest } = s.flippedCards;
+            return { flippedCards: rest };
+          }
+          return { flippedCards: { ...s.flippedCards, [id]: true } };
+        }),
 
       setCardViewMode: (mode) => set({ cardViewMode: mode }),
       setTimerSettings: (settings) => set({ timerSettings: settings }),
+      deleteCustomTemplate: (templateId) =>
+        set((s) => ({
+          roleTemplates: s.roleTemplates.filter((t) => t.id !== templateId),
+        })),
     }),
     {
       name: "werewolf-game",
       storage: createJSONStorage(() => localStorage),
+      version: 1,
+      migrate: (persisted: unknown, version: number) => {
+        const state = persisted as Record<string, unknown>;
+        if (version === 0 || version === undefined) {
+          // v0→v1: convert numeric executionId → string
+          const actionLog = state.actionLog as
+            | Array<Record<string, unknown>>
+            | undefined;
+          actionLog?.forEach((entry) => {
+            if (typeof entry.executionId === "number") {
+              entry.executionId = String(entry.executionId);
+            }
+          });
+          const gameHistory = state.gameHistory as
+            | Array<Record<string, unknown>>
+            | undefined;
+          gameHistory?.forEach((turn) => {
+            const logs = turn.actionLogs as
+              | Array<Record<string, unknown>>
+              | undefined;
+            logs?.forEach((entry) => {
+              if (typeof entry.executionId === "number") {
+                entry.executionId = String(entry.executionId);
+              }
+            });
+          });
+          // v0→v1: backfill missing timestamps
+          const now = Date.now();
+          const statusLog = state.statusChangeLog as
+            | Array<Record<string, unknown>>
+            | undefined;
+          statusLog?.forEach((e) => {
+            if (e.timestamp == null) e.timestamp = now;
+          });
+          const roleLog = state.roleChangeLog as
+            | Array<Record<string, unknown>>
+            | undefined;
+          roleLog?.forEach((e) => {
+            if (e.timestamp == null) e.timestamp = now;
+          });
+        }
+        return state as unknown as GameStore;
+      },
+      onRehydrateStorage: () => {
+        return (_state, error) => {
+          if (error) {
+            console.error("Zustand rehydration failed:", error);
+            const reset = confirm(
+              "Dữ liệu game bị lỗi. Reset để tiếp tục?\n\n(OK = Reset, Cancel = Giữ nguyên)",
+            );
+            if (reset) {
+              localStorage.removeItem("werewolf-game");
+              window.location.reload();
+            }
+          }
+        };
+      },
       partialize: (state) => ({
         step: state.step,
         playerCount: state.playerCount,
         players: state.players,
-        roleTemplates: state.roleTemplates,
         roles: state.roles,
         actionLog: state.actionLog,
         statusChangeLog: state.statusChangeLog,
         roleChangeLog: state.roleChangeLog,
-        gameHistory: state.gameHistory,
+        gameHistory: state.gameHistory.slice(-50),
         nightCount: state.nightCount,
         timerSettings: state.timerSettings,
         cardViewMode: state.cardViewMode,

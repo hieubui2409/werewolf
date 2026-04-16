@@ -14,6 +14,11 @@ export function preloadSounds(): void {
     audio.preload = "auto";
     audioCache[key] = audio;
   });
+
+  // H2: Stop all sounds when tab becomes hidden (prevents ambient blasting)
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopAllSounds();
+  });
 }
 
 export function playSound(name: SoundName): void {
@@ -32,4 +37,14 @@ export function stopSound(name: SoundName): void {
     audio.pause();
     audio.currentTime = 0;
   }
+}
+
+export function stopAllSounds(): void {
+  Object.keys(audioCache).forEach((key) => {
+    const audio = audioCache[key];
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  });
 }

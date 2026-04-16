@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { User, Moon, Lock, X, Skull, Heart } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import { usePlayerActionMap } from "../../store/game-store-selectors";
 import { BottomSheet } from "../common/bottom-sheet";
@@ -35,7 +36,12 @@ export function PlayerActionSheet({
   const col = getFactionStyle(faction);
 
   return (
-    <BottomSheet isOpen onClose={onClose} title={player.name} icon="fa-user">
+    <BottomSheet
+      isOpen
+      onClose={onClose}
+      title={player.name}
+      icon={<User size={20} />}
+    >
       <div className="py-3">
         {/* Role & Status header */}
         <div className="text-center mb-4">
@@ -54,7 +60,7 @@ export function PlayerActionSheet({
         {/* Owned Skills — compact chips */}
         {abilities.length > 0 && (
           <div className="mb-4">
-            <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2 text-center">
+            <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2 text-center">
               {t("game.skills", "Kỹ năng")}
             </p>
             <div className="flex flex-wrap justify-center gap-1.5">
@@ -68,16 +74,16 @@ export function PlayerActionSheet({
                       !exhausted && role && onUseSkill(role.id, ab)
                     }
                     disabled={exhausted}
-                    className={`text-[11px] font-bold border border-dashed rounded-lg py-1.5 px-2.5 flex items-center gap-1.5 transition active:scale-95 ${exhausted ? "border-gray-300 dark:border-white/15 text-gray-400 dark:text-white/40 cursor-not-allowed" : `${col.borderSolid} ${col.text} hover:bg-gray-100 dark:hover:bg-white/10`}`}
+                    className={`text-[11px] font-bold border border-dashed rounded-lg py-1.5 px-2.5 flex items-center gap-1.5 transition active:scale-95 ${exhausted ? "border-white/15 text-text-muted cursor-not-allowed" : `${col.borderSolid} ${col.text} hover:bg-white/10`}`}
                   >
                     <span className="truncate">
                       {tr(t, ab.nameKey, ab.name)}
                     </span>
-                    <span className="bg-gray-200 dark:bg-black/30 px-1 rounded text-[10px]">
+                    <span className="bg-bg-elevated px-1 rounded text-[10px]">
                       {ab.type === "limited" ? (
                         `${used}/${ab.max}`
                       ) : (
-                        <i className="fas fa-moon text-[8px]" />
+                        <Moon size={8} />
                       )}
                     </span>
                   </button>
@@ -90,7 +96,7 @@ export function PlayerActionSheet({
         {/* Used Skills — compact chips with undo */}
         {actions.length > 0 && (
           <div className="mb-4">
-            <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2 text-center">
+            <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2 text-center">
               {t("game.usedSkills", "Đã sử dụng")}
             </p>
             <div className="flex flex-wrap justify-center gap-1.5">
@@ -105,7 +111,7 @@ export function PlayerActionSheet({
                     className={`text-[11px] px-2.5 py-1.5 rounded-lg border-b-2 flex items-center gap-1.5 ${acol.bgLight} ${acol.borderSolid} text-white shadow-sm transition active:scale-95`}
                   >
                     {action.abilityType === "limited" && (
-                      <i className="fas fa-lock text-[9px] opacity-70" />
+                      <Lock size={10} className="opacity-70" />
                     )}
                     <span className="font-bold tracking-wide truncate">
                       {name}
@@ -115,7 +121,7 @@ export function PlayerActionSheet({
                         {source.name}
                       </span>
                     )}
-                    <i className="fas fa-times opacity-50 text-[9px]" />
+                    <X size={10} className="opacity-50" />
                   </button>
                 );
               })}
@@ -135,7 +141,11 @@ export function PlayerActionSheet({
               : "bg-emerald-600 hover:bg-emerald-700 text-white"
           }`}
         >
-          <i className={`fas ${player.alive ? "fa-skull" : "fa-heart"} mr-2`} />
+          {player.alive ? (
+            <Skull size={18} className="mr-2 inline" />
+          ) : (
+            <Heart size={18} className="mr-2 inline" />
+          )}
           {player.alive ? t("game.kill", "Giết") : t("game.revive", "Hồi sinh")}
         </button>
       </div>

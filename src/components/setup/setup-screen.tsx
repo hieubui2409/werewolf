@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Moon, Settings, BookOpen, Play, AlertTriangle } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import { PlayerConfig } from "./player-config";
 import { RoleList } from "./role-list";
@@ -43,20 +44,20 @@ export function SetupScreen() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 pb-8">
+    <main className="min-h-screen bg-bg-app text-text-primary pb-8">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-4 sticky top-0 z-10 flex items-center justify-between">
+      <div className="bg-bg-card border-b border-border-default p-4 sticky top-0 z-10 flex items-center justify-between">
         <div className="w-10" />
-        <h1 className="text-2xl font-black font-['Bungee'] uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
-          <i className="fas fa-moon mr-2 opacity-80" />
+        <h1 className="text-2xl font-black font-display uppercase tracking-wide text-indigo-400">
+          <Moon size={20} className="mr-2 opacity-80 inline" />
           {t("setup.title")}
         </h1>
         <button
           onClick={() => setShowSettings(true)}
-          className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition"
+          className="w-10 h-10 rounded-full flex items-center justify-center text-text-muted hover:bg-bg-elevated transition"
           aria-label={t("settings.title")}
         >
-          <i className="fas fa-cog text-lg" />
+          <Settings size={18} />
         </button>
       </div>
 
@@ -70,14 +71,14 @@ export function SetupScreen() {
         {/* Right: Roles */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-600 dark:text-slate-400">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-text-secondary">
               {t("setup.roles")} ({roles.length})
             </h2>
             <button
               onClick={() => setShowLibrary(true)}
               className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition active:scale-95"
             >
-              <i className="fas fa-book mr-1" />
+              <BookOpen size={12} className="mr-1 inline" />
               {t("setup.library")}
             </button>
           </div>
@@ -85,14 +86,56 @@ export function SetupScreen() {
         </div>
       </div>
 
-      {/* Start Game Button */}
+      {/* Progress + Warning */}
       <div className="max-w-5xl mx-auto px-4 mt-4">
+        {/* Progress indicator */}
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <div
+            className={`flex items-center gap-1 text-xs font-bold ${playerCount > 0 ? "text-emerald-400" : "text-text-muted"}`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${playerCount > 0 ? "bg-emerald-400" : "bg-text-muted"}`}
+            />
+            {playerCount} {t("setup.playerCount")}
+          </div>
+          <div className="w-6 h-0.5 bg-border-default rounded-full" />
+          <div
+            className={`flex items-center gap-1 text-xs font-bold ${roles.length > 0 ? "text-emerald-400" : "text-text-muted"}`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${roles.length > 0 ? "bg-emerald-400" : "bg-text-muted"}`}
+            />
+            {roles.length} {t("setup.roles")}
+          </div>
+          <div className="w-6 h-0.5 bg-border-default rounded-full" />
+          <div
+            className={`flex items-center gap-1 text-xs font-bold ${roles.length > 0 ? "text-indigo-400" : "text-text-muted"}`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${roles.length > 0 ? "bg-indigo-400" : "bg-text-muted"}`}
+            />
+            Go!
+          </div>
+        </div>
+
+        {/* Role count warning */}
+        {roles.length > 0 && roles.length < playerCount && (
+          <div className="flex items-center gap-2 bg-amber-900/20 border border-amber-500/30 rounded-lg px-3 py-2 mb-3">
+            <AlertTriangle size={14} className="text-amber-400 shrink-0" />
+            <p className="text-[11px] text-amber-400 font-bold">
+              {roles.length} {t("setup.roles")} / {playerCount}{" "}
+              {t("setup.playerCount")} — {playerCount - roles.length}{" "}
+              {t("setup.willBeVillager", "sẽ là Dân Làng")}
+            </p>
+          </div>
+        )}
+
         <button
           onClick={handleStartGame}
           disabled={roles.length === 0}
           className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-lg uppercase tracking-widest rounded-xl shadow-lg transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          <i className="fas fa-play mr-2" />
+          <Play size={16} className="mr-2 inline" />
           {t("setup.startGame")}
         </button>
       </div>

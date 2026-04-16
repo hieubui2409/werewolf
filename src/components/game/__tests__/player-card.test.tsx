@@ -15,6 +15,7 @@ describe("PlayerCard", () => {
   const mockOnFlip = vi.fn();
   const mockOnSelect = vi.fn();
   const mockOnUndoAction = vi.fn();
+  const mockOnUseSkill = vi.fn();
 
   const basePlayer: Player = {
     id: 1,
@@ -58,6 +59,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -75,6 +77,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -94,6 +97,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -111,6 +115,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -133,6 +138,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -153,12 +159,13 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
     const nameElement = screen.getByText("Alice");
     expect(nameElement).toHaveClass("line-through");
-    expect(nameElement).toHaveClass("opacity-50");
+    expect(nameElement).toHaveClass("opacity-60");
   });
 
   it("does not show line-through when player is alive", () => {
@@ -174,6 +181,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -194,6 +202,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -214,6 +223,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -233,6 +243,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -255,6 +266,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -277,6 +289,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -305,6 +318,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -318,7 +332,7 @@ describe("PlayerCard", () => {
     const actions: ActionLog[] = [
       {
         id: "action_1",
-        executionId: 1,
+        executionId: "exec_1",
         turnAdded: 1,
         sourceId: 1,
         targetId: 2,
@@ -326,6 +340,7 @@ describe("PlayerCard", () => {
         abilityName: "Cắn",
         abilityType: "nightly",
         faction: "wolf",
+        timestamp: Date.now(),
       },
     ];
 
@@ -339,11 +354,12 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
     // Check for the action chip button with aria-label containing the ability name
-    const undoButtons = screen.getAllByLabelText("Undo Cắn");
+    const undoButtons = screen.getAllByLabelText("Hoàn tác Cắn");
     expect(undoButtons.length).toBeGreaterThan(0);
   });
 
@@ -351,7 +367,7 @@ describe("PlayerCard", () => {
     const actions: ActionLog[] = [
       {
         id: "action_1",
-        executionId: 1,
+        executionId: "exec_1",
         turnAdded: 1,
         sourceId: 1,
         targetId: 2,
@@ -359,6 +375,7 @@ describe("PlayerCard", () => {
         abilityName: "Cắn",
         abilityType: "nightly",
         faction: "wolf",
+        timestamp: Date.now(),
       },
     ];
 
@@ -372,10 +389,11 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
-    const undoButtons = screen.getAllByLabelText("Undo Cắn");
+    const undoButtons = screen.getAllByLabelText("Hoàn tác Cắn");
     fireEvent.click(undoButtons[0]);
 
     expect(mockOnUndoAction).toHaveBeenCalledWith(
@@ -396,12 +414,13 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
     // Check that the card has the wolf faction border class
     const faceElement = container.querySelector(".flip-face");
-    expect(faceElement).toHaveClass("border-red-500");
+    expect(faceElement).toHaveClass("border-red-400/30");
   });
 
   it("toggles flip state with Enter key", () => {
@@ -415,6 +434,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -437,6 +457,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 
@@ -459,6 +480,7 @@ describe("PlayerCard", () => {
         onFlip={mockOnFlip}
         onSelect={mockOnSelect}
         onUndoAction={mockOnUndoAction}
+        onUseSkill={mockOnUseSkill}
       />,
     );
 

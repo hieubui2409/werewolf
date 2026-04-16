@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { Wand2, Moon, Crosshair, ArrowLeft, Skull } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import { useSortedRoles } from "../../store/game-store-selectors";
 import { BottomSheet } from "../common/bottom-sheet";
@@ -47,6 +48,9 @@ export function SkillSheet({
   const executeAction = useGameStore((s) => s.executeAction);
   const [wizard, setWizard] = useState<WizardState>(INITIAL_STATE);
   const [expandedRoleId, setExpandedRoleId] = useState<string | null>(null);
+  // C2: Use ref for players to break dependency loop in selectAbility
+  const playersRef = useRef(players);
+  playersRef.current = players;
 
   const handleClose = useCallback(() => {
     setWizard(INITIAL_STATE);
@@ -54,39 +58,44 @@ export function SkillSheet({
     onClose();
   }, [onClose]);
 
-  const selectAbility = useCallback(
-    (ability: Ability, roleId: string) => {
-      const capable = players.filter((p) => p.roleId === roleId && p.alive);
-      if (capable.length === 0) return;
-      if (capable.length === 1) {
-        setWizard({
-          step: 3,
-          ability,
-          roleId,
-          sourceId: capable[0].id,
-          targets: [],
-          possibleSources: [],
-        });
-      } else {
-        setWizard({
-          step: 2,
-          ability,
-          roleId,
-          sourceId: null,
-          targets: [],
-          possibleSources: capable,
-        });
-      }
-    },
-    [players],
-  );
-
-  // Auto-select ability when opened with initialContext (from card chip click)
-  useEffect(() => {
-    if (isOpen && initialContext) {
-      selectAbility(initialContext.ability, initialContext.roleId);
+  // C2: selectAbility reads players from ref — stable callback, no player dep
+  const selectAbility = useCallback((ability: Ability, roleId: string) => {
+    const capable = playersRef.current.filter(
+      (p) => p.roleId === roleId && p.alive,
+    );
+    if (capable.length === 0) return;
+    if (capable.length === 1) {
+      setWizard({
+        step: 3,
+        ability,
+        roleId,
+        sourceId: capable[0].id,
+        targets: [],
+        possibleSources: [],
+      });
+    } else {
+      setWizard({
+        step: 2,
+        ability,
+        roleId,
+        sourceId: null,
+        targets: [],
+        possibleSources: capable,
+      });
     }
-  }, [isOpen, initialContext, selectAbility]);
+  }, []);
+
+  // C2: Auto-select only on open — stable deps prevent wizard reset
+  const initialContextRef = useRef(initialContext);
+  initialContextRef.current = initialContext;
+  useEffect(() => {
+    if (isOpen && initialContextRef.current) {
+      selectAbility(
+        initialContextRef.current.ability,
+        initialContextRef.current.roleId,
+      );
+    }
+  }, [isOpen, selectAbility]);
 
   const selectSource = (sourceId: number) => {
     setWizard((prev) => ({ ...prev, step: 3, sourceId }));
@@ -132,12 +141,12 @@ export function SkillSheet({
       isOpen={isOpen}
       onClose={handleClose}
       title={t("game.useSkill")}
-      icon="fa-wand-sparkles"
+      icon={<Wand2 size={20} />}
       fullHeight
     >
       {/* Step 1: Choose skill */}
       {wizard.step === 1 && (
-        <div className="space-y-2">
+        <div className="space-y-2 step-enter">
           {sortedRoles.map((role) => {
             if (role.abilities.length === 0) return null;
             const style = getFactionStyle(role.faction);
@@ -146,7 +155,7 @@ export function SkillSheet({
             return (
               <div
                 key={role.id}
-                className="rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden"
+                className="rounded-xl border border-border-default overflow-hidden"
               >
                 <button
                   onClick={() => setExpandedRoleId(isExpanded ? null : role.id)}
@@ -163,22 +172,20 @@ export function SkillSheet({
                           key={p.id}
                           className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${
                             !p.alive
-                              ? "line-through bg-gray-200/60 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500"
-                              : "bg-gray-200 dark:bg-slate-600 text-gray-600 dark:text-slate-200"
+                              ? "line-through bg-slate-700/50 text-text-muted"
+                              : "bg-bg-overlay text-text-secondary"
                           }`}
                         >
                           {p.name}
                         </span>
                       ))
                     ) : (
-                      <span className="text-[10px] text-gray-400 dark:text-slate-500">
-                        —
-                      </span>
+                      <span className="text-[10px] text-text-muted">—</span>
                     )}
                   </span>
                 </button>
                 {isExpanded && (
-                  <div className="p-3 space-y-2 bg-gray-50 dark:bg-slate-800/50">
+                  <div className="p-3 space-y-2 bg-bg-elevated/50">
                     {role.abilities.map((ab) => {
                       const assigned = players.filter(
                         (p) => p.roleId === role.id,
@@ -196,20 +203,20 @@ export function SkillSheet({
                             !allExhausted && selectAbility(ab, role.id)
                           }
                           disabled={allExhausted}
-                          className={`w-full text-left px-3 py-2 rounded-lg border transition active:scale-[0.98] ${allExhausted ? "opacity-40 cursor-not-allowed bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700" : "bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600"}`}
+                          className={`w-full text-left px-3 py-2 rounded-lg border transition active:scale-[0.98] ${allExhausted ? "opacity-40 cursor-not-allowed bg-bg-elevated border-border-default" : "bg-bg-card border-border-default hover:bg-bg-elevated"}`}
                         >
                           <span
-                            className={`font-bold text-sm ${allExhausted ? "text-gray-400 dark:text-slate-500 line-through" : "text-gray-800 dark:text-white"}`}
+                            className={`font-bold text-sm ${allExhausted ? "text-text-muted line-through" : "text-text-primary"}`}
                           >
                             {tr(t, ab.nameKey, ab.name)}
                           </span>
-                          <span className="ml-2 text-[10px] text-gray-400 dark:text-slate-400">
+                          <span className="ml-2 text-[10px] text-text-muted">
                             {ab.type === "nightly" ? (
-                              <i className="fas fa-moon" />
+                              <Moon size={10} />
                             ) : (
                               `${ab.max}x`
                             )}{" "}
-                            <i className="fas fa-crosshairs ml-1" />{" "}
+                            <Crosshair size={10} className="ml-1" />{" "}
                             {ab.targetCount}
                           </span>
                         </button>
@@ -225,14 +232,14 @@ export function SkillSheet({
 
       {/* Step 2: Choose source */}
       {wizard.step === 2 && (
-        <div>
+        <div className="step-enter">
           <button
             onClick={() => setWizard(INITIAL_STATE)}
             className="mb-3 text-sm text-indigo-500 font-bold"
           >
-            <i className="fas fa-arrow-left mr-1" /> {t("common.back")}
+            <ArrowLeft size={12} className="mr-1 inline" /> {t("common.back")}
           </button>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
+          <p className="text-sm text-text-muted mb-3">
             {t("game.chooseSource", "Chọn người thực hiện")}
           </p>
           <div className="grid grid-cols-3 gap-2">
@@ -240,7 +247,7 @@ export function SkillSheet({
               <button
                 key={p.id}
                 onClick={() => selectSource(p.id)}
-                className="py-3 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl font-bold text-sm text-center transition active:scale-95 text-gray-800 dark:text-white"
+                className="py-3 bg-bg-card border border-border-default rounded-xl font-bold text-sm text-center transition active:scale-95 text-text-primary"
               >
                 {p.name}
               </button>
@@ -251,7 +258,7 @@ export function SkillSheet({
 
       {/* Step 3: Choose targets */}
       {wizard.step === 3 && wizard.ability && (
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 step-enter">
           <button
             onClick={() =>
               setWizard((prev) => ({
@@ -262,32 +269,39 @@ export function SkillSheet({
             }
             className="mb-3 text-sm text-indigo-500 font-bold"
           >
-            <i className="fas fa-arrow-left mr-1" /> {t("common.back")}
+            <ArrowLeft size={12} className="mr-1 inline" /> {t("common.back")}
           </button>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
+          <p className="text-sm text-text-muted mb-3">
             {players.find((p) => p.id === wizard.sourceId)?.name} —{" "}
-            <strong>{wizard.ability.name}</strong> ({wizard.targets.length}/
-            {wizard.ability.targetCount})
+            <strong>
+              {tr(t, wizard.ability.nameKey, wizard.ability.name)}
+            </strong>{" "}
+            ({wizard.targets.length}/{wizard.ability.targetCount})
           </p>
           <div className="grid grid-cols-4 gap-2 flex-1 content-start">
             {players.map((p) => {
               const isSelected = wizard.targets.includes(p.id);
+              const isDead = !p.alive;
               return (
                 <button
                   key={p.id}
                   onClick={() => toggleTarget(p.id)}
-                  className={`py-2 rounded-lg text-[11px] font-bold text-center transition active:scale-95 ${isSelected ? "bg-indigo-600 text-white shadow-lg" : "bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-600"}`}
+                  className={`py-2 rounded-lg text-[11px] font-bold text-center transition active:scale-95 ${isSelected ? "bg-indigo-600 text-white shadow-lg" : isDead ? "bg-bg-card text-text-muted border border-border-default opacity-50 italic" : "bg-bg-card text-text-secondary border border-border-default"}`}
                   aria-selected={isSelected}
+                  aria-label={`${p.name}${isDead ? ` (${t("game.dead")})` : ""}`}
                 >
+                  {isDead && (
+                    <Skull size={10} className="inline mr-0.5 text-red-500" />
+                  )}
                   {p.name}
                 </button>
               );
             })}
           </div>
-          <div className="flex gap-3 mt-4 pt-3 border-t border-gray-200 dark:border-slate-700">
+          <div className="flex gap-3 mt-4 pt-3 border-t border-border-default">
             <button
               onClick={confirmNoTarget}
-              className="flex-1 py-3 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 font-bold rounded-xl transition active:scale-95"
+              className="flex-1 py-3 bg-bg-elevated text-text-secondary font-bold rounded-xl transition active:scale-95"
             >
               {t("game.skip", "Bỏ qua")}
             </button>

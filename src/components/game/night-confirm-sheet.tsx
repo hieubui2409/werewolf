@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Moon } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import { BottomSheet } from "../common/bottom-sheet";
 import { playSound } from "../../utils/sounds";
@@ -20,15 +21,15 @@ export function NightConfirmSheet({ isOpen, onClose }: NightConfirmSheetProps) {
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} icon="fa-moon">
+    <BottomSheet isOpen={isOpen} onClose={onClose} icon={<Moon size={20} />}>
       <div aria-label={t("game.endTurn", { count: nightCount })}>
-        <p className="text-center text-xl font-black text-gray-800 dark:text-white mb-6">
+        <p className="text-center text-xl font-black text-text-primary mb-6">
           {t("game.endTurn", { count: nightCount })}
         </p>
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-4 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 font-bold rounded-xl transition active:scale-95"
+            className="flex-1 py-4 bg-bg-elevated text-text-secondary font-bold rounded-xl transition active:scale-95"
           >
             {t("common.cancel")}
           </button>
@@ -37,7 +38,7 @@ export function NightConfirmSheet({ isOpen, onClose }: NightConfirmSheetProps) {
             autoFocus
             className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl transition active:scale-95"
           >
-            <i className="fas fa-moon mr-2" />
+            <Moon size={16} className="mr-2 inline" />
             {t("common.confirm")}
           </button>
         </div>

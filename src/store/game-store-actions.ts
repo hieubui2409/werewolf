@@ -9,6 +9,7 @@ import type {
   TimerSettings,
 } from "../types/game";
 import { DEFAULT_ROLES, INITIAL_ROLE_IDS } from "../data/default-roles";
+import { uid } from "../utils/uid";
 
 // Helper: create initial players
 export function createInitialPlayers(count: number): Player[] {
@@ -27,7 +28,6 @@ export function createInitialRoles(): GameRole[] {
     DEFAULT_ROLES.find((r) => r.id === tid),
   ).filter((tpl): tpl is RoleTemplate => tpl !== null);
 
-  // Sort by template order to get correct game-flow sequence, then assign sequential numbers
   const sorted = [...templates].sort((a, b) => a.order - b.order);
 
   return sorted.map<GameRole>((tpl, idx) => ({
@@ -39,15 +39,9 @@ export function createInitialRoles(): GameRole[] {
     faction: tpl.faction,
     abilities: tpl.abilities.map((a) => ({
       ...a,
-      id: `ab_${Math.random().toString(36).slice(2, 9)}`,
+      id: `ab_${uid()}`,
     })),
   }));
-}
-
-// Generate unique ID (counter avoids collision on rapid clicks)
-let _counter = 0;
-function uid(): string {
-  return `${Date.now()}_${++_counter}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
 // ===== Player Actions =====
@@ -67,7 +61,47 @@ export function handlePlayerCountChange(
       })),
     ];
   }
-  return players.slice(0, newCount);
+  if (newCount < players.length) {
+    const kept = players.slice(0, newCount);
+    // Return kept players; caller is responsible for calling cleanupPlayerReferences
+    return kept.map((p) => p);
+  }
+  return players;
+}
+
+// Cleanup all state referencing removed player IDs
+export function cleanupPlayerReferences(
+  removedIds: Set<number>,
+  actionLog: ActionLog[],
+  statusChangeLog: { playerId: number; toStatus: boolean; timestamp: number }[],
+  roleChangeLog: {
+    playerId: number;
+    fromRoleId: string | null;
+    toRoleId: string | null;
+    timestamp: number;
+  }[],
+  flippedCards: Record<number, boolean>,
+): {
+  actionLog: ActionLog[];
+  statusChangeLog: typeof statusChangeLog;
+  roleChangeLog: typeof roleChangeLog;
+  flippedCards: Record<number, boolean>;
+} {
+  if (removedIds.size === 0) {
+    return { actionLog, statusChangeLog, roleChangeLog, flippedCards };
+  }
+
+  const newFlipped = { ...flippedCards };
+  removedIds.forEach((id) => delete newFlipped[id]);
+
+  return {
+    actionLog: actionLog.filter(
+      (a) => !removedIds.has(a.sourceId) && !removedIds.has(a.targetId),
+    ),
+    statusChangeLog: statusChangeLog.filter((l) => !removedIds.has(l.playerId)),
+    roleChangeLog: roleChangeLog.filter((l) => !removedIds.has(l.playerId)),
+    flippedCards: newFlipped,
+  };
 }
 
 // ===== Role Actions =====
@@ -75,12 +109,13 @@ export function addRoleFromTemplate(
   roles: GameRole[],
   template: RoleTemplate,
 ): GameRole[] {
+  const maxOrder = Math.max(0, ...roles.map((r) => r.order));
   const newRole: GameRole = {
     id: uid(),
     templateId: template.id,
     name: template.name,
     nameKey: template.nameKey,
-    order: roles.length + 1,
+    order: maxOrder + 1,
     faction: template.faction,
     abilities: template.abilities.map((a) => ({
       ...a,
@@ -96,11 +131,12 @@ export function createCustomRole(
   draft: { name: string; faction: Faction; abilities: Ability[] },
 ): { templates: RoleTemplate[]; roles: GameRole[] } {
   const id = `c_${uid()}`;
+  const maxOrder = Math.max(0, ...roles.map((r) => r.order));
   const newTemplate: RoleTemplate = {
     id,
     name: draft.name,
     nameKey: `roles.${id}`,
-    order: 10,
+    order: maxOrder + 1,
     category: "custom",
     faction: draft.faction,
     abilities: draft.abilities,
@@ -109,7 +145,7 @@ export function createCustomRole(
     id: uid(),
     templateId: id,
     name: draft.name,
-    order: 10,
+    order: maxOrder + 1,
     faction: draft.faction,
     abilities: draft.abilities.map((a) => ({ ...a, id: `ab_${uid()}` })),
   };
@@ -141,13 +177,32 @@ export function executeAction(
   targets: number[],
   faction: Faction,
   nightCount: number,
-): { players: Player[]; actionLog: ActionLog[] } {
-  // Validate limited ability usage
-  if (ability.type === "limited") {
-    const source = players.find((p) => p.id === sourceId);
-    const currentCount = source?.abilityUsage[ability.id] || 0;
-    if (currentCount >= ability.max) {
-      return { players, actionLog };
+): {
+  players: Player[];
+  actionLog: ActionLog[];
+  blocked?: boolean;
+  reason?: string;
+} {
+  const source = players.find((p) => p.id === sourceId);
+  if (!source) return { players, actionLog };
+
+  // H5: Dead source check — return blocked status for UI to handle
+  if (!source.alive) {
+    return { players, actionLog, blocked: true, reason: "dead_source" };
+  }
+
+  // Validate limited/nightly ability usage
+  if (ability.type === "limited" || ability.type === "nightly") {
+    const currentCount = source.abilityUsage[ability.id] || 0;
+    const maxUses = ability.type === "nightly" ? 1 : ability.max;
+    if (currentCount >= maxUses) {
+      return {
+        players,
+        actionLog,
+        blocked: true,
+        reason:
+          ability.type === "nightly" ? "already_used_night" : "limit_reached",
+      };
     }
   }
 
@@ -162,21 +217,40 @@ export function executeAction(
     return p;
   });
 
-  const executionId = ++_counter;
+  const executionId = uid();
   const now = Date.now();
-  const newActions: ActionLog[] = targets.map((targetId) => ({
-    id: uid(),
-    executionId,
-    turnAdded: nightCount,
-    sourceId,
-    targetId,
-    abilityId: ability.id,
-    abilityName: ability.name,
-    abilityNameKey: ability.nameKey,
-    abilityType: ability.type,
-    faction,
-    timestamp: now,
-  }));
+
+  // M11: Always create at least one log entry (even with empty targets)
+  const newActions: ActionLog[] =
+    targets.length > 0
+      ? targets.map((targetId) => ({
+          id: uid(),
+          executionId,
+          turnAdded: nightCount,
+          sourceId,
+          targetId,
+          abilityId: ability.id,
+          abilityName: ability.name,
+          abilityNameKey: ability.nameKey,
+          abilityType: ability.type,
+          faction,
+          timestamp: now,
+        }))
+      : [
+          {
+            id: uid(),
+            executionId,
+            turnAdded: nightCount,
+            sourceId,
+            targetId: sourceId,
+            abilityId: ability.id,
+            abilityName: ability.name,
+            abilityNameKey: ability.nameKey,
+            abilityType: ability.type,
+            faction,
+            timestamp: now,
+          },
+        ];
 
   return {
     players: newPlayers,
@@ -184,6 +258,7 @@ export function executeAction(
   };
 }
 
+// H1: Undo removes entire execution group atomically
 export function undoAction(
   players: Player[],
   actionLog: ActionLog[],
@@ -192,30 +267,31 @@ export function undoAction(
   const actionToUndo = actionLog.find((a) => a.id === actionId);
   if (!actionToUndo) return { players, actionLog };
 
-  // Decrement usage only when removing the last action in its execution group
-  const sameExecution = actionLog.filter(
+  // Find all entries in same execution group
+  const executionGroup = actionLog.filter(
     (a) => a.executionId === actionToUndo.executionId,
   );
-  let newPlayers = players;
-  if (sameExecution.length === 1) {
-    newPlayers = players.map((p) => {
-      if (p.id === actionToUndo.sourceId) {
-        const currentCount = p.abilityUsage[actionToUndo.abilityId] || 1;
-        return {
-          ...p,
-          abilityUsage: {
-            ...p.abilityUsage,
-            [actionToUndo.abilityId]: Math.max(0, currentCount - 1),
-          },
-        };
-      }
-      return p;
-    });
-  }
 
+  // Decrement usage once for the entire group
+  const newPlayers = players.map((p) => {
+    if (p.id === actionToUndo.sourceId) {
+      const currentCount = p.abilityUsage[actionToUndo.abilityId] || 1;
+      return {
+        ...p,
+        abilityUsage: {
+          ...p.abilityUsage,
+          [actionToUndo.abilityId]: Math.max(0, currentCount - 1),
+        },
+      };
+    }
+    return p;
+  });
+
+  // Remove all entries in execution group
+  const groupIds = new Set(executionGroup.map((a) => a.id));
   return {
     players: newPlayers,
-    actionLog: actionLog.filter((a) => a.id !== actionId),
+    actionLog: actionLog.filter((a) => !groupIds.has(a.id)),
   };
 }
 

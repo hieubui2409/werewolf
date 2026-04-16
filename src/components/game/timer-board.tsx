@@ -1,5 +1,17 @@
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  Play,
+  Pause,
+  Square,
+  MessageSquare,
+  Gavel,
+  BookOpen,
+  Moon,
+  Settings,
+  Drama,
+  Wand2,
+} from "lucide-react";
 import { useTimer } from "../../hooks/use-timer";
 import type { TimerSettings } from "../../types/game";
 
@@ -21,24 +33,33 @@ export const TimerBoard = memo(function TimerBoard({
   const { t } = useTranslation();
   const { timer, start, togglePause, stop } = useTimer();
 
+  useEffect(() => {
+    if (!timer.active) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") stop();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [timer.active, stop]);
+
   return (
     <>
       {/* Fullscreen timer overlay */}
       {timer.active && (
         <div
-          className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6"
+          className="fixed inset-0 z-[100] bg-bg-app/95 backdrop-blur-md flex flex-col items-center justify-center p-6"
           role="status"
           aria-live="polite"
         >
           <h2
-            className={`text-2xl font-black uppercase tracking-widest mb-10 ${timer.type === "debate" ? "text-orange-400" : "text-red-400"}`}
+            className={`text-2xl font-display font-black uppercase tracking-widest mb-10 ${timer.type === "debate" ? "text-orange-400" : "text-red-400"}`}
           >
             {timer.type === "debate"
               ? t("game.debate", "Tranh Luận")
               : t("game.judgment", "Phán Quyết")}
           </h2>
           <div
-            className={`text-[120px] font-black font-['Bungee'] timer-glow-pulse mb-16 leading-none ${timer.type === "debate" ? "text-orange-500" : "text-red-600"}`}
+            className={`text-[120px] font-display font-black mb-16 leading-none ${timer.type === "debate" ? "text-orange-500" : "text-red-600"} ${timer.value > 30 ? "timer-glow-calm" : timer.value > 10 ? "timer-glow-warn" : "timer-glow-critical"}`}
           >
             {Math.floor(timer.value / 60)
               .toString()
@@ -48,111 +69,141 @@ export const TimerBoard = memo(function TimerBoard({
           <div className="flex gap-6 w-full max-w-sm">
             <button
               onClick={togglePause}
-              className="flex-1 py-5 bg-slate-800 border-2 border-slate-600 rounded-[2rem] text-3xl shadow-xl flex items-center justify-center active:scale-95 transition"
+              className="flex-1 py-5 bg-bg-elevated border-2 border-border-default rounded-[2rem] shadow-xl flex items-center justify-center active:scale-95 transition"
               aria-label={timer.paused ? "Resume" : "Pause"}
             >
-              <i
-                className={`fas ${timer.paused ? "fa-play text-emerald-400" : "fa-pause text-amber-400"}`}
-              />
+              {timer.paused ? (
+                <Play className="text-emerald-400" size={28} />
+              ) : (
+                <Pause className="text-amber-400" size={28} />
+              )}
             </button>
             <button
               onClick={stop}
-              className="flex-1 py-5 bg-red-900 border-2 border-red-600 rounded-[2rem] text-3xl shadow-xl flex items-center justify-center active:scale-95 transition"
+              className="flex-1 py-5 bg-red-900 border-2 border-red-600 rounded-[2rem] shadow-xl flex items-center justify-center active:scale-95 transition"
               aria-label="Stop"
             >
-              <i className="fas fa-stop text-red-300" />
+              <Square className="text-red-300" size={28} />
             </button>
           </div>
         </div>
       )}
 
-      {/* Top bar / sidebar bar */}
-      <div className="bg-white dark:bg-slate-900 p-2 border-b-2 border-gray-200 dark:border-slate-800 flex md:flex-col justify-between items-center z-10 shadow-sm shrink-0 md:rounded-none mx-2 mt-2 md:mx-0 md:mt-0 md:border-b-0 md:border-r-2 md:p-4 rounded-b-2xl">
-        {/* Timer row: portrait=sides via contents, landscape=top row side-by-side */}
-        <div className="contents md:flex md:flex-col md:gap-2 md:w-full md:mb-2">
-          {/* Debate timer */}
-          <div className="flex flex-col items-center flex-1">
-            <button
-              onClick={() => start(settings.debate, "debate")}
-              className="py-2 px-4 md:w-full rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-1 bg-gradient-to-r from-orange-500 to-orange-700 text-white shadow-lg active:scale-95 transition"
-            >
-              <i className="fas fa-comments" /> {t("game.debate")}
-            </button>
+      {/* Mobile: compact single row */}
+      <div className="md:hidden bg-bg-card border-b border-border-default shadow-sm shrink-0 z-10">
+        <div className="flex items-center gap-1 px-2 py-1.5 overflow-x-auto hide-scrollbar snap-x snap-mandatory">
+          <button
+            onClick={() => start(settings.debate, "debate")}
+            className="shrink-0 py-1.5 px-3 rounded-lg font-black uppercase text-[10px] flex items-center gap-1 bg-gradient-to-r from-orange-500 to-orange-700 text-white shadow-lg active:scale-95 transition snap-start"
+          >
+            <MessageSquare size={12} /> {t("game.debate")}
+          </button>
+          <button
+            onClick={() => start(settings.judgment, "judgment")}
+            className="shrink-0 py-1.5 px-3 rounded-lg font-black uppercase text-[10px] flex items-center gap-1 bg-gradient-to-r from-red-600 to-red-800 text-white shadow-lg active:scale-95 transition snap-start"
+          >
+            <Gavel size={12} /> {t("game.judgment")}
+          </button>
+
+          <div className="shrink-0 px-2 py-1 bg-indigo-600/20 rounded-full border border-indigo-500/30 snap-start">
+            <span className="text-[10px] font-black text-indigo-400 uppercase whitespace-nowrap">
+              {t("game.turn", { count: nightCount })}
+            </span>
           </div>
-          {/* Judgment timer */}
-          <div className="flex flex-col items-center flex-1 order-last md:order-none">
-            <button
-              onClick={() => start(settings.judgment, "judgment")}
-              className="py-2 px-4 md:w-full rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-1 bg-gradient-to-r from-red-600 to-red-800 text-white shadow-lg active:scale-95 transition"
-            >
-              <i className="fas fa-gavel" /> {t("game.judgment")}
-            </button>
-          </div>
+
+          <button
+            onClick={() => onOpenModal("history")}
+            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-elevated transition snap-start"
+            aria-label={t("game.history")}
+          >
+            <BookOpen size={16} />
+          </button>
+          <button
+            onClick={() => onOpenModal("night")}
+            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-emerald-400 hover:text-emerald-300 hover:bg-bg-elevated transition snap-start"
+            aria-label={t("game.nextNight")}
+          >
+            <Moon size={16} className="moon-glow" />
+          </button>
+          <button
+            onClick={() => onOpenModal("settings")}
+            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-elevated transition snap-start"
+            aria-label={t("settings.title")}
+          >
+            <Settings size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop: sidebar */}
+      <div className="hidden md:flex md:flex-col bg-bg-card border-r-2 border-border-default p-4 z-10 shadow-sm shrink-0">
+        <div className="flex flex-col gap-2 w-full mb-2">
+          <button
+            onClick={() => start(settings.debate, "debate")}
+            className="py-2 w-full rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-1 bg-gradient-to-r from-orange-500 to-orange-700 text-white shadow-lg active:scale-95 transition"
+          >
+            <MessageSquare size={14} /> {t("game.debate")}
+          </button>
+          <button
+            onClick={() => start(settings.judgment, "judgment")}
+            className="py-2 w-full rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-1 bg-gradient-to-r from-red-600 to-red-800 text-white shadow-lg active:scale-95 transition"
+          >
+            <Gavel size={14} /> {t("game.judgment")}
+          </button>
         </div>
 
-        {/* Center buttons */}
-        <div className="flex flex-col md:flex-col items-center gap-1 md:gap-3 border-x-2 md:border-x-0 md:border-y-2 border-gray-200 dark:border-slate-800 px-4 md:px-0 md:py-3">
-          {/* Turn indicator: landscape only — above history with divider */}
-          <div className="hidden md:flex md:flex-col items-center w-full">
-            <div className="text-xs font-black text-indigo-500 uppercase tracking-wide">
-              {t("game.turn", { count: nightCount })}
-            </div>
-            <div className="w-8 h-0.5 bg-gray-200 dark:bg-slate-700 rounded-full mt-2" />
+        <div className="flex flex-col items-center gap-3 border-y-2 border-border-default py-3">
+          <div className="text-xs font-black text-indigo-400 uppercase tracking-wide">
+            {t("game.turn", { count: nightCount })}
           </div>
-          <div className="flex md:flex-col items-center gap-4">
+          <div className="w-8 h-0.5 bg-bg-elevated rounded-full" />
+          <div className="flex flex-col items-center gap-4">
             <button
               onClick={() => onOpenModal("history")}
-              className="flex flex-col items-center text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white transition"
+              className="flex flex-col items-center text-text-muted hover:text-text-primary transition"
               aria-label={t("game.history")}
             >
-              <i className="fas fa-book-open text-lg md:mb-0.5" />
-              <span className="hidden md:block text-[8px] font-bold uppercase tracking-wider">
+              <BookOpen size={20} className="mb-0.5" />
+              <span className="text-[8px] font-bold uppercase tracking-wider">
                 {t("game.history")}
               </span>
             </button>
             <button
               onClick={() => onOpenModal("night")}
-              className="flex flex-col items-center text-emerald-500 dark:text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 transition"
+              className="flex flex-col items-center text-emerald-400 hover:text-emerald-300 transition"
               aria-label={t("game.nextNight")}
             >
-              <i className="fas fa-moon text-lg md:mb-0.5" />
-              <span className="hidden md:block text-[8px] font-bold uppercase tracking-wider">
+              <Moon size={20} className="mb-0.5" />
+              <span className="text-[8px] font-bold uppercase tracking-wider">
                 {t("game.nextNight")}
               </span>
             </button>
             <button
               onClick={() => onOpenModal("settings")}
-              className="flex flex-col items-center text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white transition"
+              className="flex flex-col items-center text-text-muted hover:text-text-primary transition"
               aria-label={t("settings.title")}
             >
-              <i className="fas fa-cog text-lg md:mb-0.5" />
-              <span className="hidden md:block text-[8px] font-bold uppercase tracking-wider">
+              <Settings size={20} className="mb-0.5" />
+              <span className="text-[8px] font-bold uppercase tracking-wider">
                 {t("settings.title")}
               </span>
             </button>
           </div>
-          {/* Turn indicator: portrait only */}
-          <div className="md:hidden text-center">
-            <div className="text-[10px] font-black text-indigo-500 uppercase">
-              {t("game.turn", { count: nightCount })}
-            </div>
-          </div>
         </div>
 
-        {/* Action buttons: landscape sidebar only */}
-        <div className="hidden md:flex md:flex-col gap-2 w-full mt-2">
+        <div className="flex flex-col gap-2 w-full mt-2">
           <button
             onClick={onOpenAssign}
             className="w-full py-2 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-black rounded-xl shadow-lg active:scale-95 transition uppercase text-[10px] flex items-center justify-center gap-1"
           >
-            <i className="fas fa-theater-masks" />
+            <Drama size={14} />
             {t("game.assignRole")}
           </button>
           <button
             onClick={onOpenSkill}
             className="w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black rounded-xl shadow-lg active:scale-95 transition uppercase text-[10px] flex items-center justify-center gap-1"
           >
-            <i className="fas fa-wand-sparkles" />
+            <Wand2 size={14} />
             {t("game.useSkill")}
           </button>
         </div>

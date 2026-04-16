@@ -1,8 +1,8 @@
 # Werewolf Moderator — Codebase Summary
 
-**Last Updated:** 2026-04-14  
-**Status:** Complete (all phases finished, 170 tests passing)  
-**Version:** 1.0.0
+**Last Updated:** 2026-04-16  
+**Status:** Complete (4-phase refactor + redesign finished, 170 tests passing)  
+**Version:** 1.1.0
 
 ## Project Overview
 
@@ -20,7 +20,7 @@ A production-grade React web application for moderating Werewolf (Mafia) card ga
 | **State**                | Zustand                | 5.0.12                  | Lightweight state management with persist middleware |
 | **Internationalization** | react-i18next          | 17.0.2 + i18next 26.0.4 | Vietnamese + English support                         |
 | **PWA**                  | vite-plugin-pwa        | 1.2.0                   | Offline support, prompt-to-reload strategy           |
-| **Icons**                | Font Awesome Free      | 7.2.0                   | npm package (offline compatible)                     |
+| **Icons**                | lucide-react           | 1.x                     | React icon components (replaces Font Awesome)        |
 | **Testing**              | Vitest                 | 4.1.4                   | Fast unit testing framework                          |
 | **Testing**              | @testing-library/react | 16.3.2                  | React component testing                              |
 | **E2E Testing**          | Playwright             | 1.59.1                  | Cross-browser end-to-end tests                       |
@@ -35,9 +35,10 @@ src/
 ├── index.css                        # Global Tailwind + theme CSS variables
 ├── components/
 │   ├── common/                      # Reusable UI primitives
-│   │   ├── bottom-sheet.tsx         # Responsive mobile sheet / desktop side panel
+│   │   ├── bottom-sheet.tsx         # Responsive mobile sheet / desktop side panel (swipe-to-dismiss, spring physics)
 │   │   ├── error-boundary.tsx       # Error fallback UI
 │   │   ├── selector-modal.tsx       # Dropdown-like selection modal
+│   │   ├── pwa-update-sheet.tsx     # PWA update notification with themed dialog
 │   │   └── __tests__/
 │   │       └── bottom-sheet.test.tsx
 │   ├── setup/                       # Game setup flow components
@@ -49,14 +50,15 @@ src/
 │   │   └── __tests__/
 │   │       └── player-config.test.tsx
 │   └── game/                        # Active game components
-│       ├── game-screen.tsx          # Main game UI + control layout
-│       ├── player-card.tsx          # Individual player display with role reveal
-│       ├── timer-board.tsx          # Turn timer & phase display
+│       ├── game-screen.tsx          # Main game UI + control layout with responsive sidebar
+│       ├── player-card.tsx          # Individual player display with flip card & role reveal, faction patterns
+│       ├── timer-board.tsx          # Turn timer & phase display with urgency tiers (calm/warn/critical)
 │       ├── assign-role-sheet.tsx    # Assign role to player
-│       ├── skill-sheet.tsx          # Execute player ability
-│       ├── player-action-sheet.tsx  # Mark player actions (vote, dead, etc.)
+│       ├── skill-sheet.tsx          # Execute player ability with wizard step crossfade animation
+│       ├── player-action-sheet.tsx  # Mark player actions (vote, dead, etc.) with action chip animations
 │       ├── history-sheet.tsx        # Game action log
 │       ├── night-confirm-sheet.tsx  # Night phase confirmation
+│       ├── night-transition-overlay.tsx # Night phase cinematic transition with fade
 │       ├── settings-sheet.tsx       # Theme, language, rules
 │       └── __tests__/
 │           └── player-card.test.tsx
@@ -72,8 +74,10 @@ src/
 ├── data/
 │   └── default-roles.ts             # 28 built-in role templates (V17 + V21 merged)
 ├── utils/
-│   ├── faction-theme.ts             # Color mapping for factions (Tailwind classes)
-│   └── sounds.ts                    # Audio playback helpers
+│   ├── faction-theme.ts             # Faction color & styling utility (Tailwind classes + SVG patterns)
+│   ├── sounds.ts                    # Audio playback helpers
+│   ├── uid.ts                       # Unique ID generation
+│   └── i18n-helpers.ts              # i18n utility functions
 ├── hooks/
 │   └── use-timer.ts                 # Game timer logic with cleanup
 ├── i18n/
@@ -224,11 +228,34 @@ export const useActivePlayer = () =>
 - **Contrast:** WCAG AA (4.5:1 normal text, 3:1 large text)
 - **Screen readers:** Tested with manual inspection
 
-### Dark/Light Theme
+### Moonlit Gothic Design System (Dark-Only)
 
-- **Strategy:** Tailwind `dark:` class on root (`<html>`)
-- **Toggle:** Settings sheet updates `localStorage` + class
-- **CSS variables:** Theme colors in `index.css`
+- **Theme:** Dark-only palette (Moonlit Gothic)
+- **Tailwind v4:** Uses `@theme` directive for design tokens (no separate light mode)
+- **Color hierarchy:**
+  - `--color-bg-app`: #0f0f23 (deepest background)
+  - `--color-bg-surface`: #161631 (interactive surfaces)
+  - `--color-bg-card`: #1e1c35 (card containers)
+  - `--color-text-primary`: #e2e8f0 (readable text, 4.5:1 contrast)
+- **Faction colors:** Villager (#60a5fa), Wolf (#f87171), Third-party (#c084fc)
+- **Typography:** Bebas Neue (display, headings) + Inter (body text with Vietnamese support)
+- **CSS variables:** All tokens in `src/index.css` under `@theme` block
+- **Pattern overlays:** SVG faction patterns on cards (villager, wolf, third-party, mixed)
+
+### Animations & Visual Effects
+
+**Phase 4 additions:**
+
+- **Card entrance stagger:** Fade + scale + slide animation, sequential timing
+- **Timer urgency tiers:** Three levels (calm 3s pulse, warn 1.5s pulse, critical 0.5s shake + flash)
+- **Night transition:** Cinematic 2s fade overlay with 15% fade-in, 85% hold, 100% fade-out
+- **Player death/revive:** Death (0.6s desaturate + dim), Revive (0.5s resaturate + glow)
+- **Flip card:** Spring physics (cubic-bezier 0.34, 1.56, 0.64, 1) with 3D perspective
+- **Bottom sheet enter:** Spring exit animation with swipe-to-dismiss velocity threshold
+- **Wizard step crossfade:** 0.2s fade + slide for skill sheet multi-step targeting
+- **Action chip animations:** 0.2s enter stagger for player action options
+
+All animations respect `prefers-reduced-motion` for accessibility.
 
 ### Error Handling
 
@@ -276,7 +303,7 @@ useGameStore.getState().players; // Sync access without subscription
 
 - **Source:** Generated by `vite-plugin-pwa`
 - **Strategy:** Workbox (precache assets, runtime cache)
-- **Update:** Prompt-to-reload (toast → user clicks "Reload")
+- **Update:** Themed prompt-to-reload via `pwa-update-sheet.tsx` (styled dialog with CTA button)
 
 ### Manifest
 
@@ -321,6 +348,44 @@ useGameStore.getState().players; // Sync access without subscription
 - React components rewritten from scratch
 - Game logic preserved, UI completely new
 - Data structures kept compatible with old saves (localStorage format)
+
+### 4-Phase Refactor & Redesign (2026-04-15 → 2026-04-16)
+
+Completed a major refactor with **34 bug fixes**, **architecture improvements**, **design system overhaul**, and **UX polish**:
+
+**Phase 1: Bug Fixes (34 bugs)**
+
+- Critical: Storage migration, executionId collision, nextNight double-count
+- High: Undo logic, actionLog corruption, timer edge cases
+- Medium: i18n fallback, UX refinements
+
+**Phase 2: Architecture + Performance**
+
+- Extracted pure functions from Zustand into `game-store-actions.ts`
+- Added memoized selectors in `game-store-selectors.ts` (prevent re-renders)
+- Migrated icons from Font Awesome to lucide-react (lighter, tree-shakeable)
+- Created `faction-theme.ts` utility for consistent faction styling
+
+**Phase 3: UI Design System (Moonlit Gothic)**
+
+- Tailwind CSS v4 with `@theme` directive for design tokens
+- Self-hosted woff2 fonts: Bebas Neue (display) + Inter (body, Vietnamese)
+- Dark-only palette: bg-app #0f0f23, bg-surface #161631, etc.
+- Faction card SVG patterns (villager/wolf/third-party/mixed backgrounds)
+- Flip card with 3D perspective and spring physics CSS
+
+**Phase 4: UX Animations + Polish**
+
+- Card entrance stagger animations with sequential timing
+- Timer urgency tiers (calm/warn/critical) with different pulse/shake effects
+- Night transition cinematic overlay with 2s fade
+- Death/revive player animations with visual feedback
+- Swipe-to-dismiss bottom sheet with velocity threshold detection
+- Keyboard shortcuts (D, J, N, H, S, Escape) for all game actions
+- PWA themed update dialog via `pwa-update-sheet.tsx`
+- Wizard step crossfade in skill sheet for multi-step abilities
+
+All changes maintain **100% test coverage** (170 tests passing) and **WCAG AA accessibility**.
 
 ### Known Constraints
 

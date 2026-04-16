@@ -11,15 +11,15 @@
 
 - **Severity:** Critical
 - **Location:** Phase 2, section "A1: No localStorage version/migration strategy"
-- **Flaw:** The plan adds `version: 1` and a `migrate()` function, but never validates the *shape* of rehydrated state. A maliciously crafted or corrupted localStorage payload with unexpected keys, wrong types, or prototype pollution payloads (e.g., `{"__proto__": {"isAdmin": true}}`) will be deserialized by `JSON.parse` inside Zustand's `createJSONStorage` and passed directly into the store without any runtime type checking.
+- **Flaw:** The plan adds `version: 1` and a `migrate()` function, but never validates the _shape_ of rehydrated state. A maliciously crafted or corrupted localStorage payload with unexpected keys, wrong types, or prototype pollution payloads (e.g., `{"__proto__": {"isAdmin": true}}`) will be deserialized by `JSON.parse` inside Zustand's `createJSONStorage` and passed directly into the store without any runtime type checking.
 - **Failure scenario:** User shares a "save file" (JSON export from A6 recovery dialog) with another user. The JSON contains `"playerCount": "DROP TABLE"` or `"nightCount": -Infinity`. The store trusts it, components crash with NaN renders or infinite loops in `nextNight()`. Alternatively, `gameHistory` could be injected with millions of entries to exhaust memory, causing a DoS on the PWA.
 - **Evidence:** Phase 2 A1 code snippet shows `migrate(state, version)` doing a simple version check, no schema validation. Phase 2 A6 adds JSON export but no import validation.
-- **Suggested fix:** Add a Zod/valibot schema for `GameStore` persisted shape. Validate in `onRehydrateStorage` *before* merging into store. Reject invalid payloads entirely with fallback to defaults. Cap `gameHistory` length in the validator, not just `partialize`.
+- **Suggested fix:** Add a Zod/valibot schema for `GameStore` persisted shape. Validate in `onRehydrateStorage` _before_ merging into store. Reject invalid payloads entirely with fallback to defaults. Cap `gameHistory` length in the validator, not just `partialize`.
 
 ## Finding 2: executionId collision fix (M2) is incomplete — `_counter` still used for `executionId` in `executeAction`
 
 - **Severity:** Critical
-- **Location:** Phase 1, section "M2: _counter resets on reload — executionId collision"
+- **Location:** Phase 1, section "M2: \_counter resets on reload — executionId collision"
 - **Flaw:** The plan says "Replace `_counter` with `crypto.randomUUID()` for collision-free IDs." But in the actual codebase, `_counter` is used for TWO purposes: (1) the `uid()` function, and (2) directly as `executionId` at line 165: `const executionId = ++_counter;`. The plan's M2 fix only addresses `uid()`. The `executionId` assignment is a separate code path that also uses `_counter` and also resets on reload, but is NOT mentioned in the fix. Furthermore, `ActionLog.executionId` is typed as `number` but `crypto.randomUUID()` returns `string` — the plan does not mention the type change. If `uid()` switches to UUID but `executeAction` still uses `++_counter`, executionId will still collide across reloads, and the `undoAction` function groups by `executionId` — undo will corrupt.
 - **Failure scenario:** After a page reload, `_counter` resets to 0. New `executeAction` calls produce `executionId: 1, 2, 3...` which collide with pre-reload entries persisted in `actionLog`. User clicks undo on a new action, but `undoAction` finds stale actions from before reload sharing the same `executionId`, and incorrectly removes them or miscalculates usage decrements.
 - **Evidence:** `src/store/game-store-actions.ts:165` — `const executionId = ++_counter;`. Plan M2 only mentions `uid()`. No type migration for `executionId: number` -> `string`.
@@ -29,7 +29,7 @@
 
 - **Severity:** High
 - **Location:** Phase 1, section "H2: Night sound never stops"
-- **Flaw:** The plan says "Add `stopSound(id)` + `stopAllSounds()` to sounds.ts API." But `stopSound` already exists in `src/utils/sounds.ts:29-35`. Plan was written against stale analysis. If an implementer follows literally, they will either duplicate the function, waste time, or skip the actual root cause — nothing *calls* `stopSound("night")` at the right lifecycle points.
+- **Flaw:** The plan says "Add `stopSound(id)` + `stopAllSounds()` to sounds.ts API." But `stopSound` already exists in `src/utils/sounds.ts:29-35`. Plan was written against stale analysis. If an implementer follows literally, they will either duplicate the function, waste time, or skip the actual root cause — nothing _calls_ `stopSound("night")` at the right lifecycle points.
 - **Failure scenario:** Implementer reads "Add stopSound API" and writes a second version, shadowing the existing one, or skips the task thinking "it already exists." The actual bug — missing invocations at day-start, game-reset, settings-reset — remains unfixed.
 - **Evidence:** `src/utils/sounds.ts` lines 29-35 already have `stopSound`. Plan says "Add `stopSound(id)` + `stopAllSounds()` to sounds.ts API."
 - **Suggested fix:** Rewrite H2 to: "Verify `stopSound` exists (it does). Add `stopAllSounds()` helper only. Wire calls at: (1) timer `start()`, (2) `resetGame()`, (3) settings reset."
@@ -49,7 +49,7 @@
 - **Location:** Phase 4, section "ANIM4: Timer Countdown Urgency"
 - **Flaw:** Plan specifies `navigator.vibrate(100)` at timer=0 with "if available" parenthetical but no implementation spec for the guard. `navigator.vibrate` is undefined in iOS Safari and some privacy browsers. A bare call throws `TypeError`. If this is in a synchronous chain with flash animation and sound, the entire timer-expire sequence breaks.
 - **Failure scenario:** Timer hits 0 on iOS Safari. `navigator.vibrate(100)` throws. No visual feedback, no sound, timer stuck in expired state.
-- **Evidence:** Phase 4 ANIM4: "`=0`: Flash white...`navigator.vibrate(100)` if available" — no try/catch, no feature detection pattern. Phase 1 H3 fixes a *different* Safari crash (requestIdleCallback) showing Safari compat is a known concern.
+- **Evidence:** Phase 4 ANIM4: "`=0`: Flash white...`navigator.vibrate(100)` if available" — no try/catch, no feature detection pattern. Phase 1 H3 fixes a _different_ Safari crash (requestIdleCallback) showing Safari compat is a known concern.
 - **Suggested fix:** Specify explicitly: `try { navigator.vibrate?.(100); } catch {}`. Or create `safeVibrate()` utility matching the existing `playSound` pattern which already uses try/catch.
 
 ## Finding 6: Keyboard shortcuts (U6) have contradictory guard specs — will fire during text input

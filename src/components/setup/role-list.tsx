@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { X, Crosshair, Trash2, Plus } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import { useSortedRoles } from "../../store/game-store-selectors";
 import { getFactionStyle } from "../../utils/faction-theme";
@@ -26,15 +27,26 @@ export function RoleList({ onOpenSelector }: RoleListProps) {
           <article
             key={role.id}
             aria-label={role.name}
-            className={`relative bg-gray-50 dark:bg-slate-800/80 rounded-xl p-3 border-l-4 ${style.borderSolid} border border-gray-200 dark:border-slate-700`}
+            className={`relative bg-bg-elevated rounded-xl p-3 border-l-4 ${style.borderSolid} border border-border-default`}
           >
             {/* Delete role button */}
             <button
-              onClick={() => deleteRole(role.id)}
+              onClick={() => {
+                if (
+                  confirm(
+                    t(
+                      "setup.confirmDeleteRole",
+                      "Xóa vai {{name}}? Các người chơi đã gán sẽ mất vai.",
+                    ).replace("{{name}}", role.name),
+                  )
+                ) {
+                  deleteRole(role.id);
+                }
+              }}
               className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-700 transition z-10"
               aria-label={`${t("common.delete")} ${role.name}`}
             >
-              <i className="fas fa-times text-[10px]" />
+              <X size={10} />
             </button>
 
             {/* Role header */}
@@ -57,7 +69,7 @@ export function RoleList({ onOpenSelector }: RoleListProps) {
                 type="text"
                 value={role.name}
                 onChange={(e) => updateRoleName(role.id, e.target.value)}
-                className={`flex-1 bg-transparent border-b border-gray-300 dark:border-slate-600 px-1 py-0.5 text-sm font-bold ${style.text} focus:outline-none focus:border-indigo-500`}
+                className={`flex-1 bg-transparent border-b border-border-default px-1 py-0.5 text-sm font-bold ${style.text} focus:outline-none focus:border-indigo-500`}
                 aria-label={`Role name`}
               />
             </div>
@@ -75,7 +87,7 @@ export function RoleList({ onOpenSelector }: RoleListProps) {
                     onChange={(e) =>
                       updateAbility(role.id, ab.id, "name", e.target.value)
                     }
-                    className="flex-1 min-w-[80px] bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-[11px] text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="flex-1 min-w-[80px] bg-bg-card border border-border-default rounded px-2 py-1 text-[11px] text-text-primary focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   />
                   <button
                     onClick={() =>
@@ -86,7 +98,7 @@ export function RoleList({ onOpenSelector }: RoleListProps) {
                         currentValue: ab.type,
                       })
                     }
-                    className="bg-gray-200 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-[9px] font-bold text-gray-700 dark:text-slate-300"
+                    className="bg-bg-elevated border border-border-default rounded px-2 py-1 text-[9px] font-bold text-text-secondary"
                   >
                     {ab.type === "nightly"
                       ? t("setup.nightly", "Đêm")
@@ -102,7 +114,7 @@ export function RoleList({ onOpenSelector }: RoleListProps) {
                           currentValue: ab.max,
                         })
                       }
-                      className="bg-gray-200 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-[9px] font-bold text-gray-700 dark:text-slate-300"
+                      className="bg-bg-elevated border border-border-default rounded px-2 py-1 text-[9px] font-bold text-text-secondary"
                     >
                       x{ab.max}
                     </button>
@@ -116,9 +128,9 @@ export function RoleList({ onOpenSelector }: RoleListProps) {
                         currentValue: ab.targetCount,
                       })
                     }
-                    className="bg-gray-200 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-[9px] font-bold text-gray-700 dark:text-slate-300"
+                    className="bg-bg-elevated border border-border-default rounded px-2 py-1 text-[9px] font-bold text-text-secondary"
                   >
-                    <i className="fas fa-crosshairs mr-0.5" />
+                    <Crosshair size={10} className="mr-0.5 inline" />
                     {ab.targetCount}
                   </button>
                   <button
@@ -126,16 +138,16 @@ export function RoleList({ onOpenSelector }: RoleListProps) {
                     className="text-red-400 hover:text-red-600 text-xs p-1"
                     aria-label={`${t("common.delete")} ${ab.name}`}
                   >
-                    <i className="fas fa-trash-alt text-[10px]" />
+                    <Trash2 size={10} />
                   </button>
                 </div>
               ))}
               {role.abilities.length < MAX_ABILITIES_PER_ROLE && (
                 <button
                   onClick={() => addAbility(role.id)}
-                  className="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold hover:underline"
+                  className="text-[10px] text-indigo-400 font-bold hover:underline"
                 >
-                  <i className="fas fa-plus mr-1" />
+                  <Plus size={10} className="mr-1 inline" />
                   {t("setup.addAbility", "Thêm kỹ năng")}
                 </button>
               )}
@@ -145,7 +157,7 @@ export function RoleList({ onOpenSelector }: RoleListProps) {
       })}
 
       {sortedRoles.length === 0 && (
-        <p className="text-center text-gray-400 dark:text-slate-500 text-sm py-8 italic">
+        <p className="text-center text-text-muted text-sm py-8 italic">
           {t("setup.noRoles", "Chưa có vai trò nào. Mở Thư Viện để thêm.")}
         </p>
       )}

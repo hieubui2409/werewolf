@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { BookOpen, PlusCircle, Check, Trash2 } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import { BottomSheet } from "../common/bottom-sheet";
 import { getFactionStyle } from "../../utils/faction-theme";
@@ -57,6 +58,7 @@ export function RoleLibrarySheet({
   const roleTemplates = useGameStore((s) => s.roleTemplates);
   const roles = useGameStore((s) => s.roles);
   const addRoleFromTemplate = useGameStore((s) => s.addRoleFromTemplate);
+  const deleteCustomTemplate = useGameStore((s) => s.deleteCustomTemplate);
 
   const customTemplates = roleTemplates.filter((r) => r.category === "custom");
 
@@ -65,7 +67,7 @@ export function RoleLibrarySheet({
       isOpen={isOpen}
       onClose={onClose}
       title={t("setup.library")}
-      icon="fa-book"
+      icon={<BookOpen size={20} />}
       fullHeight
     >
       {/* Create custom role button */}
@@ -73,7 +75,7 @@ export function RoleLibrarySheet({
         onClick={onCreateCustom}
         className="w-full mb-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-wide rounded-xl transition active:scale-[0.98]"
       >
-        <i className="fas fa-plus-circle mr-2" />
+        <PlusCircle size={16} className="mr-2 inline" />
         {t("setup.createCustomRole")}
       </button>
 
@@ -101,19 +103,22 @@ export function RoleLibrarySheet({
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border transition active:scale-[0.98] ${
                       isAdded
                         ? `${style.bgLight} ${style.border} opacity-60`
-                        : "bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-750"
+                        : "bg-bg-card border-border-default hover:bg-bg-elevated"
                     }`}
                     aria-pressed={isAdded}
                   >
                     <span className={`font-bold text-sm ${style.text}`}>
                       {t(tpl.nameKey, tpl.name)}
                     </span>
-                    <span className="text-[10px] text-gray-400 dark:text-slate-500">
+                    <span className="text-[10px] text-text-muted">
                       {tpl.abilities.length > 0
-                        ? `${tpl.abilities.length} skill`
-                        : "passive"}
+                        ? `${tpl.abilities.length} ${t("ability.skill", "skill")}`
+                        : t("ability.passive", "passive")}
                       {isAdded && (
-                        <i className="fas fa-check ml-2 text-emerald-400" />
+                        <Check
+                          size={12}
+                          className="ml-2 text-emerald-400 inline"
+                        />
                       )}
                     </span>
                   </button>
@@ -135,22 +140,41 @@ export function RoleLibrarySheet({
               const isAdded = roles.some((r) => r.templateId === tpl.id);
               const style = getFactionStyle(tpl.faction);
               return (
-                <button
-                  key={tpl.id}
-                  onClick={() => addRoleFromTemplate(tpl)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border transition ${
-                    isAdded
-                      ? `${style.bgLight} ${style.border} opacity-60`
-                      : "bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700"
-                  }`}
-                >
-                  <span className={`font-bold text-sm ${style.text}`}>
-                    {tpl.name}
-                  </span>
-                  {isAdded && (
-                    <i className="fas fa-check text-emerald-400 text-xs" />
-                  )}
-                </button>
+                <div key={tpl.id} className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => addRoleFromTemplate(tpl)}
+                    className={`flex-1 flex items-center justify-between px-3 py-2.5 rounded-lg border transition ${
+                      isAdded
+                        ? `${style.bgLight} ${style.border} opacity-60`
+                        : "bg-bg-card border-border-default"
+                    }`}
+                  >
+                    <span className={`font-bold text-sm ${style.text}`}>
+                      {tpl.name}
+                    </span>
+                    {isAdded && (
+                      <Check size={12} className="text-emerald-400" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (
+                        confirm(
+                          t("setup.confirmDeleteRole", "Delete?").replace(
+                            "{{name}}",
+                            tpl.name,
+                          ),
+                        )
+                      ) {
+                        deleteCustomTemplate(tpl.id);
+                      }
+                    }}
+                    className="w-8 h-8 rounded-lg bg-red-900/30 text-red-500 flex items-center justify-center hover:bg-red-800/50 transition shrink-0"
+                    aria-label={`${t("common.delete")} ${tpl.name}`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               );
             })}
           </div>

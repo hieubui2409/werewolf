@@ -122,10 +122,7 @@ describe("PlayerConfig", () => {
     // Check that each input has an aria-label
     const inputs = screen.getAllByRole("textbox");
     inputs.forEach((input, index) => {
-      expect(input).toHaveAttribute(
-        "aria-label",
-        `setup.playerCount ${index + 1}`,
-      );
+      expect(input).toHaveAttribute("aria-label", `Player ${index + 1}`);
     });
   });
 
@@ -240,9 +237,7 @@ describe("PlayerConfig", () => {
   it("renders in a styled container", () => {
     const { container } = render(<PlayerConfig />);
 
-    const configContainer = container.querySelector(
-      ".bg-gray-100.dark\\:bg-slate-800",
-    );
+    const configContainer = container.querySelector(".bg-bg-elevated");
     expect(configContainer).toBeInTheDocument();
   });
 

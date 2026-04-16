@@ -28,13 +28,17 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div
           role="alert"
-          className="p-6 bg-red-100 dark:bg-red-950 text-red-900 dark:text-white h-screen font-mono text-xs overflow-auto"
+          className="p-6 bg-red-950 text-white h-screen font-mono text-xs overflow-auto"
         >
-          <h2 className="text-xl font-bold mb-4">
-            <i className="fas fa-bug mr-2" />
-            Lỗi Hệ Thống
-          </h2>
-          <p className="mb-4">{this.state.error?.toString()}</p>
+          <h2 className="text-xl font-bold mb-4">Lỗi Hệ Thống</h2>
+          {import.meta.env.DEV && (
+            <p className="mb-4 whitespace-pre-wrap break-all">
+              {this.state.error?.toString()}
+            </p>
+          )}
+          {!import.meta.env.DEV && (
+            <p className="mb-4">Đã xảy ra lỗi. Vui lòng tải lại trang.</p>
+          )}
           <button
             onClick={() => window.location.reload()}
             className="mt-4 p-3 bg-red-600 text-white font-bold rounded hover:bg-red-700 transition"

@@ -5,7 +5,9 @@
     "roles": "Roles",
     "library": "Library",
     "startGame": "START GAME",
-    "createCustomRole": "CREATE CUSTOM ROLE"
+    "createCustomRole": "CREATE CUSTOM ROLE",
+    "confirmDeleteRole": "Delete role {{name}}? Assigned players will lose their role.",
+    "noTarget": "0"
   },
   "game": {
     "assignRole": "Assign Role",
@@ -130,6 +132,29 @@
     "copyRole": "Copy Role",
     "peek": "Peek",
     "drain": "Drain"
+  },
+  "ability": {
+    "skill": "skill",
+    "passive": "passive",
+    "night": "Night",
+    "limited": "Limited"
+  },
+  "factions": {
+    "villager": "Village",
+    "wolf": "Wolf",
+    "third": "Third"
+  },
+  "history": {
+    "current": "Current",
+    "pastTurns": "Past Turns",
+    "actions": "actions"
+  },
+  "pwa": {
+    "updatePrompt": "New update available. Reload?",
+    "newMoon": "A new moon rises...",
+    "updateAvailable": "Update available!",
+    "updateNow": "Update Now",
+    "later": "Later"
   },
   "library": {
     "basicVillager": "Basic Villager",

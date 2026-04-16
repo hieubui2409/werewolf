@@ -1,5 +1,6 @@
-import { memo } from "react";
+import { memo, useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { Skull, Lock, X, MoreVertical, Moon } from "lucide-react";
 import type {
   Player,
   GameRole,
@@ -9,6 +10,12 @@ import type {
 } from "../../types/game";
 import { getFactionStyle } from "../../utils/faction-theme";
 import { tr } from "../../utils/i18n-helpers";
+
+const FACTION_EMOJI: Record<string, string> = {
+  wolf: "🐺",
+  villager: "🛡",
+  third: "👁",
+};
 
 interface PlayerCardProps {
   player: Player;
@@ -25,7 +32,7 @@ interface PlayerCardProps {
 function DeathWatermark() {
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-      <i className="fas fa-skull-crossbones text-red-500/25 text-6xl" />
+      <Skull size={64} className="text-red-900/30" />
     </div>
   );
 }
@@ -58,15 +65,17 @@ function ActionChips({
             <button
               key={action.id}
               onClick={(e) => onUndoAction(action.id, e)}
-              className={`text-[9px] px-2 py-1 rounded-md border-b-2 flex items-center gap-1 md:w-auto justify-between ${col.bgLight} ${col.borderSolid} text-white shadow-sm`}
+              aria-label={`${t("game.undo", "Hoàn tác")} ${name}`}
+              className={`chip-appear text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 md:w-auto justify-between ${col.bgLight} ${col.borderSolid} border text-text-primary shadow-sm`}
             >
+              <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />
               <span className="flex items-center gap-1 truncate">
                 {action.abilityType === "limited" && (
-                  <i className="fas fa-lock text-[8px] opacity-70" />
+                  <Lock size={8} className="opacity-70" />
                 )}
-                <span className="truncate font-bold tracking-wide">{name}</span>
+                <span className="truncate font-semibold">{name}</span>
               </span>
-              <i className="fas fa-times opacity-50" />
+              <X size={10} className="opacity-50" />
             </button>
           );
         })}
@@ -82,25 +91,55 @@ function ActionChips({
             <button
               key={action.id}
               onClick={(e) => onUndoAction(action.id, e)}
-              className={`text-[9px] px-2 py-1 rounded-md border-b-2 flex items-center gap-1 w-full justify-between ${col.bgLight} ${col.borderSolid} text-white shadow-sm ${isLast ? "opacity-40" : ""}`}
+              aria-label={`${t("game.undo", "Hoàn tác")} ${name}`}
+              className={`chip-appear text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 w-full justify-between ${col.bgLight} ${col.borderSolid} border text-text-primary shadow-sm ${isLast ? "opacity-40" : ""}`}
             >
+              <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />
               <span className="flex items-center gap-1 truncate">
                 {action.abilityType === "limited" && (
-                  <i className="fas fa-lock text-[8px] opacity-70" />
+                  <Lock size={8} className="opacity-70" />
                 )}
-                <span className="truncate font-bold tracking-wide">{name}</span>
+                <span className="truncate font-semibold">{name}</span>
               </span>
-              <i className="fas fa-times opacity-50" />
+              <X size={10} className="opacity-50" />
             </button>
           );
         })}
         {hasOverflow && (
-          <div className="text-[9px] text-white/30 font-bold w-full text-center">
+          <div className="text-[9px] text-text-muted font-bold w-full text-center">
             +{actions.length - MAX_VISIBLE_CHIPS}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function AbilityButton({
+  ab,
+  used,
+  exhausted,
+  role,
+  onUseSkill,
+}: {
+  ab: Ability;
+  used: number;
+  exhausted: boolean;
+  role: GameRole;
+  onUseSkill: (roleId: string, ability: Ability, e: React.MouseEvent) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <button
+      onClick={(e) => !exhausted && onUseSkill(role.id, ab, e)}
+      disabled={exhausted}
+      className={`text-[10px] border border-dashed rounded-lg py-1 px-1.5 flex justify-between md:justify-center items-center gap-1 font-bold w-full md:w-auto transition active:scale-95 ${exhausted ? "border-border-default text-text-muted cursor-not-allowed" : "border-text-secondary text-text-primary hover:bg-bg-elevated"}`}
+    >
+      <span className="truncate max-w-[65%]">{tr(t, ab.nameKey, ab.name)}</span>
+      <span className="bg-bg-elevated px-1 rounded">
+        {ab.type === "limited" ? `${used}/${ab.max}` : <Moon size={8} />}
+      </span>
+    </button>
   );
 }
 
@@ -125,16 +164,30 @@ export const PlayerCard = memo(function PlayerCard({
   const faction = isVillager ? "villager" : role?.faction || "villager";
   const col = getFactionStyle(faction);
 
+  const deadName = !player.alive ? "line-through opacity-60" : "";
+
+  // ANIM7/ANIM8: Death/revive animation
+  const [animClass, setAnimClass] = useState("");
+  const prevAlive = useRef(player.alive);
+  useEffect(() => {
+    if (prevAlive.current && !player.alive) setAnimClass("death-anim");
+    else if (!prevAlive.current && player.alive) setAnimClass("revive-anim");
+    prevAlive.current = player.alive;
+  }, [player.alive]);
+  const handleAnimEnd = useCallback(() => setAnimClass(""), []);
+  const deadClass = !player.alive && !animClass ? "dead-card" : "";
+
   // "both" mode — combined view, no flip
   if (viewMode === "both") {
     return (
-      <div className="w-full h-44">
+      <div className="w-full min-h-[170px] md:min-h-[180px] lg:min-h-[190px]">
         <div
-          className={`w-full h-full p-3 flex flex-col rounded-2xl relative border-l-4 border ${col.borderSolid} bg-white dark:bg-slate-900 shadow-sm overflow-y-auto hide-scrollbar card-pattern-${faction} ${!player.alive ? "dead-card" : ""}`}
+          className={`w-full h-full p-3 flex flex-col rounded-2xl relative border ${col.border} bg-bg-card shadow-card overflow-y-auto hide-scrollbar card-pattern-${faction} hover:${col.glow} transition-shadow ${deadClass} ${animClass}`}
+          onAnimationEnd={handleAnimEnd}
         >
           {!player.alive && <DeathWatermark />}
           <div className="flex justify-between items-center mb-2">
-            <span className="bg-gray-200 dark:bg-black/30 text-gray-700 dark:text-white w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0">
+            <span className="bg-bg-elevated text-text-primary w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0">
               {player.id}
             </span>
             <div
@@ -144,16 +197,18 @@ export const PlayerCard = memo(function PlayerCard({
             </div>
             <button
               onClick={(e) => onSelect(player.id, e)}
-              className="text-gray-400 dark:text-white/50 hover:text-gray-600 dark:hover:text-white ml-2 p-1"
+              className="text-text-muted hover:text-text-primary ml-2 p-1"
               aria-label="Player options"
             >
-              <i className="fas fa-ellipsis-v" />
+              <MoreVertical size={14} />
             </button>
           </div>
-          <div className="font-black text-lg text-gray-900 dark:text-white truncate px-1 text-center mb-5">
+          <div
+            className={`font-black text-lg text-text-primary truncate px-1 text-center mb-5 ${deadName}`}
+          >
             {player.name}
           </div>
-          {!isVillager && abilities.length > 0 && (
+          {!isVillager && abilities.length > 0 && role && (
             <div
               className="flex flex-col md:flex-row md:flex-wrap md:justify-center gap-1 mb-3"
               onClick={(e) => e.stopPropagation()}
@@ -162,25 +217,14 @@ export const PlayerCard = memo(function PlayerCard({
                 const used = player.abilityUsage[ab.id] || 0;
                 const exhausted = ab.type === "limited" && used >= ab.max;
                 return (
-                  <button
+                  <AbilityButton
                     key={ab.id}
-                    onClick={(e) =>
-                      !exhausted && role && onUseSkill(role.id, ab, e)
-                    }
-                    disabled={exhausted}
-                    className={`text-[9px] font-bold border border-dashed rounded-lg py-1 px-1.5 flex justify-between md:justify-center items-center gap-1 w-full md:w-auto transition active:scale-95 ${exhausted ? "border-gray-300 dark:border-white/15 text-gray-400 dark:text-white/40 cursor-not-allowed" : "border-gray-400 dark:border-white/30 text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/10"}`}
-                  >
-                    <span className="truncate max-w-[70%]">
-                      {tr(t, ab.nameKey, ab.name)}
-                    </span>
-                    <span className="bg-gray-200 dark:bg-black/30 px-1 rounded">
-                      {ab.type === "limited" ? (
-                        `${used}/${ab.max}`
-                      ) : (
-                        <i className="fas fa-moon text-[7px]" />
-                      )}
-                    </span>
-                  </button>
+                    ab={ab}
+                    used={used}
+                    exhausted={exhausted}
+                    role={role}
+                    onUseSkill={onUseSkill}
+                  />
                 );
               })}
             </div>
@@ -194,26 +238,35 @@ export const PlayerCard = memo(function PlayerCard({
   // Name face (front)
   const nameFace = (
     <div
-      className={`flip-face p-3 bg-white dark:bg-slate-900 border-l-4 ${col.borderSolid} border border-gray-200 dark:border-slate-700 rounded-xl card-pattern-mixed`}
+      className={`flip-face p-3 bg-bg-card border ${col.border} rounded-xl card-pattern-mixed`}
     >
       {!player.alive && <DeathWatermark />}
       <div className="flex justify-between items-start mb-2">
-        <span className="w-7 h-7 rounded-full flex items-center justify-center font-black text-sm bg-gray-200 dark:bg-black/30 text-gray-700 dark:text-white">
+        <span className="w-7 h-7 rounded-full flex items-center justify-center font-black text-sm bg-bg-elevated text-text-primary">
           {player.id}
         </span>
       </div>
       <div className="text-center mt-auto mb-auto">
-        <div className="font-black text-xl truncate px-1 text-gray-900 dark:text-white">
+        <div
+          className={`font-black text-xl truncate px-1 text-text-primary ${deadName}`}
+        >
           {player.name}
         </div>
+        {player.roleId && (
+          <div
+            className={`text-[8px] font-bold uppercase tracking-wider mt-1 ${col.text}`}
+          >
+            {FACTION_EMOJI[faction]} {t(`factions.${faction}`)}
+          </div>
+        )}
       </div>
       <ActionChips actions={actions} onUndoAction={onUndoAction} />
       <button
         onClick={(e) => onSelect(player.id, e)}
-        className="absolute top-2 right-2 text-gray-400 dark:text-white/50 hover:text-gray-600 dark:hover:text-white p-2"
+        className="absolute top-2 right-2 text-text-muted hover:text-text-primary p-2"
         aria-label="Player options"
       >
-        <i className="fas fa-ellipsis-v" />
+        <MoreVertical size={14} />
       </button>
     </div>
   );
@@ -221,19 +274,19 @@ export const PlayerCard = memo(function PlayerCard({
   // Role face (back)
   const roleFace = (
     <div
-      className={`flip-face flip-back p-2 ${col.bgLight} border-l-4 ${col.borderSolid} border border-gray-200 dark:border-slate-700 rounded-xl card-pattern-${faction}`}
+      className={`flip-face flip-back p-2 ${col.bgLight} border ${col.border} rounded-xl card-pattern-${faction}`}
     >
       {!player.alive && <DeathWatermark />}
       <div className="flex justify-between items-start">
-        <span className="bg-gray-200 dark:bg-black/30 text-gray-600 dark:text-white/80 w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs">
+        <span className="bg-bg-elevated text-text-secondary w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs">
           {player.id}
         </span>
         <button
           onClick={(e) => onSelect(player.id, e)}
-          className="text-gray-400 dark:text-white/50 hover:text-gray-600 dark:hover:text-white p-1 -mt-1"
+          className="text-text-muted hover:text-text-primary p-1 -mt-1"
           aria-label="Player options"
         >
-          <i className="fas fa-ellipsis-v" />
+          <MoreVertical size={14} />
         </button>
       </div>
       <div className="text-center mt-1 mb-4">
@@ -248,33 +301,23 @@ export const PlayerCard = memo(function PlayerCard({
         onClick={(e) => e.stopPropagation()}
       >
         {isVillager ? (
-          <span className="text-[11px] text-gray-400 dark:text-white/50 italic font-bold">
+          <span className="text-[11px] text-text-muted italic font-bold">
             {t("game.noAbility", "Không kỹ năng")}
           </span>
         ) : (
+          role &&
           abilities.map((ab) => {
             const used = player.abilityUsage[ab.id] || 0;
             const isDisabled = ab.type === "limited" && used >= ab.max;
             return (
-              <button
+              <AbilityButton
                 key={ab.id}
-                onClick={(e) =>
-                  !isDisabled && role && onUseSkill(role.id, ab, e)
-                }
-                disabled={isDisabled}
-                className={`text-[10px] border border-dashed rounded-lg py-1 px-1.5 flex justify-between md:justify-center items-center gap-1 font-bold w-full md:w-auto transition active:scale-95 ${isDisabled ? "bg-transparent border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/40 cursor-not-allowed" : "bg-transparent border-gray-500 dark:border-white/40 text-gray-800 dark:text-white hover:bg-white/10"}`}
-              >
-                <span className="truncate max-w-[65%]">
-                  {tr(t, ab.nameKey, ab.name)}
-                </span>
-                <span className="opacity-90 bg-gray-200 dark:bg-black/30 px-1 rounded">
-                  {ab.type === "limited" ? (
-                    `${used}/${ab.max}`
-                  ) : (
-                    <i className="fas fa-moon text-[8px]" />
-                  )}
-                </span>
-              </button>
+                ab={ab}
+                used={used}
+                exhausted={isDisabled}
+                role={role}
+                onUseSkill={onUseSkill}
+              />
             );
           })
         )}
@@ -288,7 +331,8 @@ export const PlayerCard = memo(function PlayerCard({
 
   return (
     <div
-      className={`flip-container w-full h-44 cursor-pointer ${showFlipped ? "flipped" : ""} ${!player.alive ? "dead-card" : ""}`}
+      className={`flip-container w-full min-h-[170px] md:min-h-[180px] lg:min-h-[190px] cursor-pointer ${showFlipped ? "flipped" : ""} ${deadClass} ${animClass}`}
+      onAnimationEnd={handleAnimEnd}
       onClick={() => onFlip(player.id)}
       role="button"
       aria-label={`${player.name} - ${roleName}`}
@@ -301,7 +345,9 @@ export const PlayerCard = memo(function PlayerCard({
         }
       }}
     >
-      <div className="flip-inner shadow-lg rounded-xl">
+      <div
+        className={`flip-inner shadow-card rounded-xl hover:${col.glow} transition-shadow`}
+      >
         {nameFace}
         {roleFace}
       </div>

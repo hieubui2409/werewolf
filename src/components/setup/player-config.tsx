@@ -1,5 +1,28 @@
+import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useGameStore } from "../../store/game-store";
+
+interface PlayerInputProps {
+  id: number;
+  name: string;
+  onNameChange: (id: number, name: string) => void;
+}
+
+const PlayerInput = memo(function PlayerInput({
+  id,
+  name,
+  onNameChange,
+}: PlayerInputProps) {
+  return (
+    <input
+      type="text"
+      value={name}
+      onChange={(e) => onNameChange(id, e.target.value)}
+      className="bg-bg-elevated border border-border-default rounded-lg px-3 py-2 text-sm text-text-primary focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+      aria-label={`Player ${id}`}
+    />
+  );
+});
 
 export function PlayerConfig() {
   const { t } = useTranslation();
@@ -10,13 +33,17 @@ export function PlayerConfig() {
   );
   const updatePlayerName = useGameStore((s) => s.updatePlayerName);
 
+  const onNameChange = useCallback(
+    (id: number, name: string) => updatePlayerName(id, name),
+    [updatePlayerName],
+  );
+
   return (
-    <div className="bg-gray-100 dark:bg-slate-800 rounded-2xl p-4 border border-gray-200 dark:border-slate-700">
-      {/* Player count slider */}
+    <div className="bg-bg-elevated rounded-2xl p-4 border border-border-default">
       <div className="flex items-center justify-between mb-4">
         <label
           htmlFor="player-count"
-          className="text-sm font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wide"
+          className="text-sm font-bold text-text-secondary uppercase tracking-wide"
         >
           {t("setup.playerCount")}
         </label>
@@ -35,16 +62,13 @@ export function PlayerConfig() {
         aria-valuetext={`${playerCount} ${t("setup.playerCount")}`}
       />
 
-      {/* Player names grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
         {players.map((p) => (
-          <input
+          <PlayerInput
             key={p.id}
-            type="text"
-            value={p.name}
-            onChange={(e) => updatePlayerName(p.id, e.target.value)}
-            className="bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            aria-label={`${t("setup.playerCount")} ${p.id}`}
+            id={p.id}
+            name={p.name}
+            onNameChange={onNameChange}
           />
         ))}
       </div>

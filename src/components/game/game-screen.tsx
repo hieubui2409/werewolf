@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { Drama, Wand2, X as XIcon } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import {
   useRoleMap,
@@ -15,11 +16,22 @@ import { PlayerActionSheet } from "./player-action-sheet";
 import { HistorySheet } from "./history-sheet";
 import { NightConfirmSheet } from "./night-confirm-sheet";
 import { SettingsSheet } from "./settings-sheet";
+import { NightTransitionOverlay } from "./night-transition-overlay";
 import type { Ability } from "../../types/game";
 
 type ModalType = "assign" | "skill" | "history" | "night" | "settings" | null;
 
 const EMPTY_ACTIONS: import("../../types/game").ActionLog[] = [];
+
+function isTypingContext(e: KeyboardEvent): boolean {
+  const t = e.target as HTMLElement;
+  if (!t) return false;
+  const tag = t.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  if (t.isContentEditable) return true;
+  if (t.getAttribute("role") === "textbox") return true;
+  return false;
+}
 
 export function GameScreen() {
   const { t } = useTranslation();
@@ -37,6 +49,7 @@ export function GameScreen() {
   const [modal, setModal] = useState<ModalType>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [skillContext, setSkillContext] = useState<SkillContext | null>(null);
+  const [nightOverlay, setNightOverlay] = useState(false);
 
   const openModal = useCallback((m: "history" | "night" | "settings") => {
     setModal(m);
@@ -71,80 +84,179 @@ export function GameScreen() {
     setSkillContext(null);
   }, []);
 
+  const openAssign = useCallback(() => setModal("assign"), []);
+  const openSkillFresh = useCallback(() => {
+    setSkillContext(null);
+    setModal("skill");
+  }, []);
+
+  const closePlayerSheet = useCallback(() => setSelectedPlayer(null), []);
+  const handlePlayerSheetSkill = useCallback(
+    (roleId: string, ability: Ability) => {
+      setSelectedPlayer(null);
+      setSkillContext({ ability, roleId });
+      setModal("skill");
+    },
+    [],
+  );
+
+  const [fabOpen, setFabOpen] = useState(false);
+  const toggleFab = useCallback(() => setFabOpen((prev) => !prev), []);
+  const handleFabAssign = useCallback(() => {
+    setFabOpen(false);
+    setModal("assign");
+  }, []);
+  const handleFabSkill = useCallback(() => {
+    setFabOpen(false);
+    setSkillContext(null);
+    setModal("skill");
+  }, []);
+
+  // U6: Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        const hasUI = modal || selectedPlayer !== null || fabOpen;
+        if (modal) setModal(null);
+        if (selectedPlayer !== null) setSelectedPlayer(null);
+        if (fabOpen) setFabOpen(false);
+        if (hasUI) e.stopImmediatePropagation();
+        return;
+      }
+      if (isTypingContext(e)) return;
+
+      switch (e.key.toLowerCase()) {
+        case "n":
+          if (!modal) setModal("night");
+          break;
+        case "h":
+          setModal((prev) => (prev === "history" ? null : "history"));
+          break;
+        case "s":
+          setModal((prev) => (prev === "settings" ? null : "settings"));
+          break;
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [modal, selectedPlayer, fabOpen]);
+
+  // ANIM6: Show overlay after night confirm
+  const handleNightOverlayComplete = useCallback(
+    () => setNightOverlay(false),
+    [],
+  );
+
+  // Listen for nightCount changes to trigger overlay
+  const prevNight = useRef(nightCount);
+  useEffect(() => {
+    if (nightCount > prevNight.current) {
+      setNightOverlay(true);
+    }
+    prevNight.current = nightCount;
+  }, [nightCount]);
+
   return (
-    <div className="h-dvh flex flex-col md:flex-row bg-gray-100 dark:bg-slate-950">
+    <div
+      className={`h-dvh flex flex-col md:flex-row bg-bg-app ${nightCount > 0 ? "night-atmosphere" : ""}`}
+    >
       {/* Timer sidebar/bar */}
       <TimerBoard
         settings={timerSettings}
         nightCount={nightCount}
         onOpenModal={openModal}
-        onOpenAssign={() => setModal("assign")}
-        onOpenSkill={() => {
-          setSkillContext(null);
-          setModal("skill");
-        }}
+        onOpenAssign={openAssign}
+        onOpenSkill={openSkillFresh}
       />
 
       {/* Main player grid */}
       <main className="flex-1 overflow-y-auto min-h-0 p-2 md:p-4 pb-20 md:pb-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 items-start content-start">
-          {sortedPlayers.map((player) => (
-            <PlayerCard
+        <div className="grid grid-cols-2 landscape:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3 items-start content-start">
+          {sortedPlayers.map((player, index) => (
+            <div
               key={player.id}
-              player={player}
-              role={player.roleId ? roleMap.get(player.roleId) : undefined}
-              actions={actionMap.get(player.id) ?? EMPTY_ACTIONS}
-              isFlipped={!!flippedCards[player.id]}
-              viewMode={cardViewMode}
-              onFlip={flipCard}
-              onSelect={handleSelectPlayer}
-              onUndoAction={handleUndoAction}
-              onUseSkill={handleUseSkill}
-            />
+              className="card-enter"
+              style={{ animationDelay: `${index * 40}ms` }}
+            >
+              <PlayerCard
+                player={player}
+                role={player.roleId ? roleMap.get(player.roleId) : undefined}
+                actions={actionMap.get(player.id) ?? EMPTY_ACTIONS}
+                isFlipped={!!flippedCards[player.id]}
+                viewMode={cardViewMode}
+                onFlip={flipCard}
+                onSelect={handleSelectPlayer}
+                onUndoAction={handleUndoAction}
+                onUseSkill={handleUseSkill}
+              />
+            </div>
           ))}
         </div>
       </main>
 
-      {/* Action buttons — fixed bottom on mobile, sidebar bottom on desktop */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-20 md:hidden">
+      {/* Expandable FAB — mobile only */}
+      <div className="fixed bottom-4 right-4 z-20 md:hidden flex flex-col-reverse items-end gap-2">
+        {fabOpen && (
+          <>
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm -z-10"
+              onClick={toggleFab}
+            />
+            <button
+              onClick={handleFabSkill}
+              className="fab-item-enter px-4 py-2.5 bg-cta text-white font-black rounded-2xl shadow-elevated active:scale-95 transition uppercase text-xs flex items-center gap-1.5"
+            >
+              <Wand2 size={14} />
+              {t("game.useSkill")}
+            </button>
+            <button
+              onClick={handleFabAssign}
+              className="fab-item-enter px-4 py-2.5 bg-success text-white font-black rounded-2xl shadow-elevated active:scale-95 transition uppercase text-xs flex items-center gap-1.5"
+            >
+              <Drama size={14} />
+              {t("game.assignRole")}
+            </button>
+          </>
+        )}
         <button
-          onClick={() => setModal("assign")}
-          className="px-5 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-black rounded-2xl shadow-[0_5px_15px_rgba(16,185,129,0.4)] active:scale-95 transition uppercase text-xs"
+          onClick={toggleFab}
+          className={`w-14 h-14 rounded-full bg-cta text-white shadow-elevated flex items-center justify-center active:scale-95 transition-transform ${fabOpen ? "rotate-45" : ""}`}
+          aria-label={
+            fabOpen ? t("common.close", "Đóng") : t("game.actions", "Hành động")
+          }
+          aria-expanded={fabOpen}
         >
-          <i className="fas fa-theater-masks mr-1.5" />
-          {t("game.assignRole")}
-        </button>
-        <button
-          onClick={() => {
-            setSkillContext(null);
-            setModal("skill");
-          }}
-          className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black rounded-2xl shadow-[0_5px_15px_rgba(99,102,241,0.4)] active:scale-95 transition uppercase text-xs"
-        >
-          <i className="fas fa-wand-sparkles mr-1.5" />
-          {t("game.useSkill")}
+          {fabOpen ? <XIcon size={24} /> : <Wand2 size={24} />}
         </button>
       </div>
 
-      {/* Sheets — replace strategy: only one open at a time */}
-      <AssignRoleSheet isOpen={modal === "assign"} onClose={closeModal} />
-      <SkillSheet
-        isOpen={modal === "skill"}
-        onClose={closeSkillSheet}
-        initialContext={skillContext}
-      />
-      <PlayerActionSheet
-        playerId={selectedPlayer}
-        onClose={() => setSelectedPlayer(null)}
-        onUseSkill={(roleId, ability) => {
-          setSelectedPlayer(null);
-          setSkillContext({ ability, roleId });
-          setModal("skill");
-        }}
-      />
-      <HistorySheet isOpen={modal === "history"} onClose={closeModal} />
-      <NightConfirmSheet isOpen={modal === "night"} onClose={closeModal} />
-      <SettingsSheet isOpen={modal === "settings"} onClose={closeModal} />
+      {/* Night transition overlay */}
+      {nightOverlay && (
+        <NightTransitionOverlay
+          nightCount={nightCount}
+          onComplete={handleNightOverlayComplete}
+        />
+      )}
+
+      {/* H8: Lazy mount — only render open sheets */}
+      {modal === "assign" && <AssignRoleSheet isOpen onClose={closeModal} />}
+      {modal === "skill" && (
+        <SkillSheet
+          isOpen
+          onClose={closeSkillSheet}
+          initialContext={skillContext}
+        />
+      )}
+      {selectedPlayer !== null && (
+        <PlayerActionSheet
+          playerId={selectedPlayer}
+          onClose={closePlayerSheet}
+          onUseSkill={handlePlayerSheetSkill}
+        />
+      )}
+      {modal === "history" && <HistorySheet isOpen onClose={closeModal} />}
+      {modal === "night" && <NightConfirmSheet isOpen onClose={closeModal} />}
+      {modal === "settings" && <SettingsSheet isOpen onClose={closeModal} />}
     </div>
   );
 }

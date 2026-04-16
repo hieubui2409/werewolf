@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Hash, Users, List } from "lucide-react";
 import { BottomSheet } from "./bottom-sheet";
 
 export interface SelectorConfig {
@@ -26,7 +27,7 @@ export function SelectorModal({
   const { t } = useTranslation();
 
   let title = "";
-  let icon = "fa-hashtag";
+  let icon: React.ReactNode = <Hash size={20} />;
   let options: { value: number | string; label: string }[] = [];
 
   switch (selector.type) {
@@ -39,10 +40,10 @@ export function SelectorModal({
       break;
     case "targetCount":
       title = t("setup.targetCount", "Số Lượng Mục Tiêu");
-      icon = "fa-users";
-      options = Array.from({ length: playerCount }, (_, i) => ({
-        value: i + 1,
-        label: String(i + 1),
+      icon = <Users size={20} />;
+      options = Array.from({ length: playerCount + 1 }, (_, i) => ({
+        value: i,
+        label: i === 0 ? t("setup.noTarget", "0") : String(i),
       }));
       break;
     case "max":
@@ -54,7 +55,7 @@ export function SelectorModal({
       break;
     case "skillType":
       title = t("setup.skillType", "Loại Kỹ Năng");
-      icon = "fa-list";
+      icon = <List size={20} />;
       options = [
         { value: "nightly", label: t("setup.nightly", "Mỗi Đêm") },
         { value: "limited", label: t("setup.limited", "Giới Hạn") },
@@ -82,7 +83,7 @@ export function SelectorModal({
               className={`py-4 rounded-xl font-bold ${isNumber ? "text-xl" : "text-sm"} transition-all transform active:scale-95 ${
                 isActive
                   ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(79,70,229,0.5)] border-2 border-indigo-400"
-                  : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-2 border-gray-200 dark:border-slate-700"
+                  : "bg-bg-elevated text-text-secondary border-2 border-border-default"
               }`}
             >
               {opt.label}

@@ -43,7 +43,7 @@ export interface Player {
 
 export interface ActionLog {
   id: string;
-  executionId: number;
+  executionId: string;
   turnAdded: number;
   sourceId: number;
   targetId: number;
@@ -80,11 +80,12 @@ export interface GameState {
   roleTemplates: RoleTemplate[];
   roles: GameRole[];
   actionLog: ActionLog[];
-  statusChangeLog: { playerId: number; toStatus: boolean }[];
+  statusChangeLog: { playerId: number; toStatus: boolean; timestamp: number }[];
   roleChangeLog: {
     playerId: number;
     fromRoleId: string | null;
     toRoleId: string | null;
+    timestamp: number;
   }[];
   gameHistory: TurnHistory[];
   nightCount: number;

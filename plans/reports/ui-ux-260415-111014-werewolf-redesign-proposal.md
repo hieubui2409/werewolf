@@ -16,6 +16,7 @@ The Werewolf Moderator PWA serves a specific niche: live board-game moderators w
 **Vision:** Transform the app into an immersive, cinematic moderator console that feels like a supernatural artifact — deep midnight backgrounds, faction-colored neon glows, dramatic typography, and purposeful micro-interactions that heighten the theatrical atmosphere without sacrificing the fast, tap-heavy workflow moderators need.
 
 **Key objectives:**
+
 - Establish a dark-first OLED design system anchored in the werewolf theme (night, moon, blood, mystery)
 - Reduce bundle size by ~1MB (Font Awesome replacement) + eliminate render-blocking fonts
 - Introduce phase-aware atmosphere (night=deep indigo, day=warm amber)
@@ -75,25 +76,26 @@ BORDERS
 ```
 
 **CSS Variables:**
+
 ```css
 :root {
   --bg-app: #020203;
-  --bg-surface: #0C0C14;
+  --bg-surface: #0c0c14;
   --bg-card: #151520;
-  --bg-elevated: #1E1E2E;
-  --bg-overlay: #28283A;
-  --text-primary: #F1F5F9;
-  --text-secondary: #CBD5E1;
-  --text-muted: #64748B;
-  --border-default: #1E293B;
+  --bg-elevated: #1e1e2e;
+  --bg-overlay: #28283a;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  --border-default: #1e293b;
   --border-hover: #334155;
-  --faction-villager: #3B82F6;
-  --faction-wolf: #EF4444;
-  --faction-third: #A855F7;
-  --accent-night: #6366F1;
-  --accent-day: #CA8A04;
-  --accent-danger: #DC2626;
-  --accent-success: #22C55E;
+  --faction-villager: #3b82f6;
+  --faction-wolf: #ef4444;
+  --faction-third: #a855f7;
+  --accent-night: #6366f1;
+  --accent-day: #ca8a04;
+  --accent-danger: #dc2626;
+  --accent-success: #22c55e;
 }
 ```
 
@@ -139,25 +141,26 @@ PHASE ACCENTS
 ```
 
 **CSS Variables:**
+
 ```css
 :root {
-  --bg-app: #0F0F23;
+  --bg-app: #0f0f23;
   --bg-surface: #161631;
-  --bg-card: #1E1C35;
-  --bg-elevated: #27273B;
+  --bg-card: #1e1c35;
+  --bg-elevated: #27273b;
   --bg-overlay: #323250;
-  --text-primary: #E2E8F0;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --border-default: #4C1D95;
-  --border-hover: #5B21B6;
-  --faction-villager: #60A5FA;
-  --faction-wolf: #F87171;
-  --faction-third: #C084FC;
-  --accent-night: #818CF8;
-  --accent-day: #FBBF24;
-  --accent-danger: #F43F5E;
-  --accent-success: #34D399;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-default: #4c1d95;
+  --border-hover: #5b21b6;
+  --faction-villager: #60a5fa;
+  --faction-wolf: #f87171;
+  --faction-third: #c084fc;
+  --accent-night: #818cf8;
+  --accent-day: #fbbf24;
+  --accent-danger: #f43f5e;
+  --accent-success: #34d399;
 }
 ```
 
@@ -208,6 +211,7 @@ BORDERS
 ### **RECOMMENDATION: Option B ("Moonlit Gothic")**
 
 **Rationale:**
+
 - Best thematic fit for werewolf/supernatural genre — midnight blue with mystical purple undertones
 - Amber accent creates a unique brand identity vs. generic indigo/blue apps
 - Purple-tinted borders add fantasy depth that reinforces the game world
@@ -216,6 +220,7 @@ BORDERS
 - All faction colors maintain clear identity with >5:1 contrast ratios
 
 For **light mode** (kept for accessibility), invert to:
+
 ```
   App bg:   #F8FAFC (slate-50)
   Surface:  #FFFFFF
@@ -256,10 +261,14 @@ VIETNAMESE SUPPORT: Russo One ✓ (Latin Extended) | Chakra Petch ✓ (Vietnames
 ```
 
 **Loading strategy:**
+
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Chakra+Petch:wght@300;400;500;600;700&display=swap" />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Russo+One&family=Chakra+Petch:wght@300;400;500;600;700&display=swap"
+/>
 ```
 
 **Estimated size:** ~85KB total (Russo 25KB + Chakra Petch 60KB)  
@@ -295,12 +304,22 @@ VIETNAMESE SUPPORT: Bebas Neue ✓ (Latin Extended) | Inter ✓ (full Vietnamese
 ```
 
 **Loading strategy (non-blocking):**
+
 ```html
 <!-- In index.html <head> -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+<link
+  rel="preload"
+  as="style"
+  href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap"
+/>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap"
+  media="print"
+  onload="this.media='all'"
+/>
 ```
 
 **Estimated size:** ~70KB total (Bebas 15KB + Inter 55KB)  
@@ -329,6 +348,7 @@ VIETNAMESE SUPPORT: Bungee ✓ (Latin Extended) | Inter ✓ (full Vietnamese)
 ### **RECOMMENDATION: Option B (Bebas Neue + Inter)**
 
 **Rationale:**
+
 - Bebas Neue is the perfect "moderator authority" font — tall, narrow, dramatic, cinematic
 - Timer display in Bebas will look significantly more polished than current Bungee (narrower, more elegant numerals)
 - Inter is the industry standard for UI body text — superior Vietnamese rendering, optical sizing
@@ -337,6 +357,7 @@ VIETNAMESE SUPPORT: Bungee ✓ (Latin Extended) | Inter ✓ (full Vietnamese)
 - Clear visual hierarchy: Bebas = structural (titles, headers, timer, badges), Inter = functional (body, labels, inputs, chips)
 
 **Tailwind config:**
+
 ```js
 theme: {
   fontFamily: {
@@ -361,6 +382,7 @@ CURRENT: Font Awesome 6 Free (all.min.css)
 ```
 
 Icons found in codebase (exhaustive scan):
+
 ```
 fa-moon, fa-cog, fa-play, fa-pause, fa-stop, fa-comments, fa-gavel,
 fa-book-open, fa-book, fa-wand-sparkles, fa-wand-magic-sparkles,
@@ -390,41 +412,41 @@ License: ISC (permissive)
 
 **Migration map (35 icons):**
 
-| Font Awesome | Lucide Equivalent | Import |
-|---|---|---|
-| fa-moon | `Moon` | `import { Moon } from 'lucide-react'` |
-| fa-sun | `Sun` | `import { Sun } from 'lucide-react'` |
-| fa-cog | `Settings` | `import { Settings } from 'lucide-react'` |
-| fa-play | `Play` | `import { Play } from 'lucide-react'` |
-| fa-pause | `Pause` | `import { Pause } from 'lucide-react'` |
-| fa-stop | `Square` | `import { Square } from 'lucide-react'` |
-| fa-comments | `MessageSquare` | `import { MessageSquare } from 'lucide-react'` |
-| fa-gavel | `Gavel` | `import { Gavel } from 'lucide-react'` |
-| fa-book-open | `BookOpen` | `import { BookOpen } from 'lucide-react'` |
-| fa-book | `Library` | `import { Library } from 'lucide-react'` |
-| fa-wand-sparkles | `Wand2` | `import { Wand2 } from 'lucide-react'` |
-| fa-wand-magic-sparkles | `Sparkles` | `import { Sparkles } from 'lucide-react'` |
-| fa-theater-masks | `Drama` | `import { Drama } from 'lucide-react'` |
-| fa-times | `X` | `import { X } from 'lucide-react'` |
-| fa-chevron-up | `ChevronUp` | `import { ChevronUp } from 'lucide-react'` |
-| fa-chevron-down | `ChevronDown` | `import { ChevronDown } from 'lucide-react'` |
-| fa-arrow-left | `ArrowLeft` | `import { ArrowLeft } from 'lucide-react'` |
-| fa-arrow-right | `ArrowRight` | `import { ArrowRight } from 'lucide-react'` |
-| fa-ellipsis-v | `MoreVertical` | `import { MoreVertical } from 'lucide-react'` |
-| fa-plus | `Plus` | `import { Plus } from 'lucide-react'` |
-| fa-plus-circle | `PlusCircle` | `import { PlusCircle } from 'lucide-react'` |
-| fa-trash-alt | `Trash2` | `import { Trash2 } from 'lucide-react'` |
-| fa-trash | `Trash` | `import { Trash } from 'lucide-react'` |
-| fa-check | `Check` | `import { Check } from 'lucide-react'` |
-| fa-skull | `Skull` | `import { Skull } from 'lucide-react'` |
-| fa-skull-crossbones | `Skull` | (same, no crossbones variant — use custom) |
-| fa-heart | `Heart` | `import { Heart } from 'lucide-react'` |
-| fa-lock | `Lock` | `import { Lock } from 'lucide-react'` |
-| fa-crosshairs | `Crosshair` | `import { Crosshair } from 'lucide-react'` |
-| fa-undo | `Undo2` | `import { Undo2 } from 'lucide-react'` |
-| fa-exchange-alt | `ArrowLeftRight` | `import { ArrowLeftRight } from 'lucide-react'` |
-| fa-users | `Users` | `import { Users } from 'lucide-react'` |
-| fa-hashtag | `Hash` | `import { Hash } from 'lucide-react'` |
+| Font Awesome           | Lucide Equivalent | Import                                          |
+| ---------------------- | ----------------- | ----------------------------------------------- |
+| fa-moon                | `Moon`            | `import { Moon } from 'lucide-react'`           |
+| fa-sun                 | `Sun`             | `import { Sun } from 'lucide-react'`            |
+| fa-cog                 | `Settings`        | `import { Settings } from 'lucide-react'`       |
+| fa-play                | `Play`            | `import { Play } from 'lucide-react'`           |
+| fa-pause               | `Pause`           | `import { Pause } from 'lucide-react'`          |
+| fa-stop                | `Square`          | `import { Square } from 'lucide-react'`         |
+| fa-comments            | `MessageSquare`   | `import { MessageSquare } from 'lucide-react'`  |
+| fa-gavel               | `Gavel`           | `import { Gavel } from 'lucide-react'`          |
+| fa-book-open           | `BookOpen`        | `import { BookOpen } from 'lucide-react'`       |
+| fa-book                | `Library`         | `import { Library } from 'lucide-react'`        |
+| fa-wand-sparkles       | `Wand2`           | `import { Wand2 } from 'lucide-react'`          |
+| fa-wand-magic-sparkles | `Sparkles`        | `import { Sparkles } from 'lucide-react'`       |
+| fa-theater-masks       | `Drama`           | `import { Drama } from 'lucide-react'`          |
+| fa-times               | `X`               | `import { X } from 'lucide-react'`              |
+| fa-chevron-up          | `ChevronUp`       | `import { ChevronUp } from 'lucide-react'`      |
+| fa-chevron-down        | `ChevronDown`     | `import { ChevronDown } from 'lucide-react'`    |
+| fa-arrow-left          | `ArrowLeft`       | `import { ArrowLeft } from 'lucide-react'`      |
+| fa-arrow-right         | `ArrowRight`      | `import { ArrowRight } from 'lucide-react'`     |
+| fa-ellipsis-v          | `MoreVertical`    | `import { MoreVertical } from 'lucide-react'`   |
+| fa-plus                | `Plus`            | `import { Plus } from 'lucide-react'`           |
+| fa-plus-circle         | `PlusCircle`      | `import { PlusCircle } from 'lucide-react'`     |
+| fa-trash-alt           | `Trash2`          | `import { Trash2 } from 'lucide-react'`         |
+| fa-trash               | `Trash`           | `import { Trash } from 'lucide-react'`          |
+| fa-check               | `Check`           | `import { Check } from 'lucide-react'`          |
+| fa-skull               | `Skull`           | `import { Skull } from 'lucide-react'`          |
+| fa-skull-crossbones    | `Skull`           | (same, no crossbones variant — use custom)      |
+| fa-heart               | `Heart`           | `import { Heart } from 'lucide-react'`          |
+| fa-lock                | `Lock`            | `import { Lock } from 'lucide-react'`           |
+| fa-crosshairs          | `Crosshair`       | `import { Crosshair } from 'lucide-react'`      |
+| fa-undo                | `Undo2`           | `import { Undo2 } from 'lucide-react'`          |
+| fa-exchange-alt        | `ArrowLeftRight`  | `import { ArrowLeftRight } from 'lucide-react'` |
+| fa-users               | `Users`           | `import { Users } from 'lucide-react'`          |
+| fa-hashtag             | `Hash`            | `import { Hash } from 'lucide-react'`           |
 
 **After tree-shaking (35 icons): ~8KB gzipped**  
 **Savings vs current: ~992KB (99.2% reduction)**
@@ -463,6 +485,7 @@ Create 35 custom SVGs with werewolf-themed flair (paw prints as bullets, moon ph
 ### **RECOMMENDATION: Option A (Lucide React) + 3 Custom SVGs**
 
 **Strategy:**
+
 1. Replace all 35 Font Awesome icons with Lucide React equivalents
 2. Create 3 custom SVG icons for game-specific needs:
    - `WerewolfSkull` — stylized skull with crossbones (death watermark)
@@ -473,6 +496,7 @@ Create 35 custom SVGs with werewolf-themed flair (paw prints as bullets, moon ph
 5. Remove all Font Awesome unicode references in CSS card patterns — replace with inline SVG patterns
 
 **Impact:**
+
 - **Bundle reduction:** 1MB -> ~8KB (~99% reduction)
 - **CSS removal:** ~3KB of Font Awesome import + card pattern `::after` content rules
 - **Migration effort:** ~2-3 hours (find-replace + component prop updates)
@@ -547,6 +571,7 @@ DEAD CARD:
 ```
 
 **Tailwind implementation:**
+
 ```tsx
 // Alive card wrapper
 <div className={cn(
@@ -572,6 +597,7 @@ DEAD CARD:
 ```
 
 **New faction background patterns (CSS-only, no Font Awesome):**
+
 ```css
 /* Wolf: diagonal claw slashes */
 .card-bg-wolf {
@@ -586,20 +612,21 @@ DEAD CARD:
 
 /* Villager: subtle diamond grid */
 .card-bg-villager {
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 15px,
-    rgba(59, 130, 246, 0.03) 15px,
-    rgba(59, 130, 246, 0.03) 16px
-  ),
-  repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 15px,
-    rgba(59, 130, 246, 0.03) 15px,
-    rgba(59, 130, 246, 0.03) 16px
-  );
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 15px,
+      rgba(59, 130, 246, 0.03) 15px,
+      rgba(59, 130, 246, 0.03) 16px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 15px,
+      rgba(59, 130, 246, 0.03) 15px,
+      rgba(59, 130, 246, 0.03) 16px
+    );
 }
 
 /* Third: concentric circles */
@@ -655,7 +682,8 @@ Entire card background is a subtle gradient of faction color.
 
 ```tsx
 // Example for wolf
-className="bg-gradient-to-br from-red-950/80 to-red-900/30 border border-red-500/20"
+className =
+  "bg-gradient-to-br from-red-950/80 to-red-900/30 border border-red-500/20";
 ```
 
 **Pros:** Strongest faction identity. Cards are immediately distinguishable at a glance.  
@@ -666,6 +694,7 @@ className="bg-gradient-to-br from-red-950/80 to-red-900/30 border border-red-500
 ### **RECOMMENDATION: Option A ("Glowing Edge")**
 
 **Rationale:**
+
 - Subtle glow borders provide faction identity without overwhelming the card grid
 - CSS-only background patterns eliminate Font Awesome dependency
 - Dead state is dramatically clearer (skull overlay + strikethrough + strong dim)
@@ -726,12 +755,14 @@ Proposed:  ( ● Cắn   × )
 ```
 
 ```tsx
-<button className={cn(
-  "text-[10px] font-semibold px-2 py-0.5 rounded-full",
-  "flex items-center gap-1",
-  "bg-red-500/15 text-red-400 border border-red-500/30",
-  "hover:bg-red-500/25 active:scale-95 transition",
-)}>
+<button
+  className={cn(
+    "text-[10px] font-semibold px-2 py-0.5 rounded-full",
+    "flex items-center gap-1",
+    "bg-red-500/15 text-red-400 border border-red-500/30",
+    "hover:bg-red-500/25 active:scale-95 transition",
+  )}
+>
   <span className="w-1.5 h-1.5 rounded-full bg-current" />
   <span className="truncate">{name}</span>
   <X className="w-3 h-3 opacity-50" />
@@ -747,15 +778,23 @@ Proposed:  ( ● Cắn   × )
 The app has two primary phases: **Night** (skill usage, secret actions) and **Day** (debate, judgment). Create atmospheric transitions.
 
 **Night Phase Atmosphere:**
+
 ```css
 /* Ambient floating particles (CSS-only) */
 @keyframes float {
-  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.15; }
-  50% { transform: translateY(-20px) translateX(10px); opacity: 0.3; }
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translateY(-20px) translateX(10px);
+    opacity: 0.3;
+  }
 }
 
 .night-ambience::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -775,10 +814,11 @@ The app has two primary phases: **Night** (skill usage, secret actions) and **Da
 ```
 
 **Day Phase (Timer Active):**
+
 ```css
 /* Warm ambient gradient when debate/judgment timer runs */
 .day-ambience::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -808,9 +848,16 @@ TIME = 0:     Flash white, vibrate (if Vibration API available)
 ```css
 /* Urgent shake for final 10 seconds */
 @keyframes timerShake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  75% { transform: translateX(2px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
 }
 
 .timer-urgent {
@@ -820,9 +867,15 @@ TIME = 0:     Flash white, vibrate (if Vibration API available)
 
 /* Final flash at 0 */
 @keyframes timerFlash {
-  0% { opacity: 1; }
-  50% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .timer-expired {
@@ -874,8 +927,14 @@ TIME = 0:     Flash white, vibrate (if Vibration API available)
 
 /* Backdrop: fade in blur */
 @keyframes backdropEnter {
-  from { backdrop-filter: blur(0); background: transparent; }
-  to { backdrop-filter: blur(8px); background: rgba(0,0,0,0.85); }
+  from {
+    backdrop-filter: blur(0);
+    background: transparent;
+  }
+  to {
+    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.85);
+  }
 }
 
 .backdrop-enter {
@@ -884,7 +943,9 @@ TIME = 0:     Flash white, vibrate (if Vibration API available)
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .sheet-enter, .sheet-exit, .backdrop-enter {
+  .sheet-enter,
+  .sheet-exit,
+  .backdrop-enter {
     animation-duration: 0.01s;
   }
 }
@@ -984,23 +1045,23 @@ Crossfade between steps 1 → 2 → 3:
 
 ### 6.6 Micro-Interactions Catalog
 
-| Element | Interaction | Duration | Effect |
-|---|---|---|---|
-| All buttons | Press | 100ms | `active:scale-95` (already exists, keep) |
-| Player card | Tap to flip | 500ms | Spring overshoot (see 5.0) |
-| Player card | Hover (desktop) | 200ms | Faction glow shadow appears |
-| Toggle (radio group) | Select | 150ms | Background color slide + `scale(1.02)` |
-| Action chip | Appear | 200ms | `fadeIn` + `translateY(4px)` |
-| Action chip | Remove (undo) | 150ms | `scaleX(0)` from center |
-| Bottom sheet | Open | 400ms | Spring slide + backdrop blur |
-| Bottom sheet | Close | 250ms | Fast sink + backdrop fade |
-| Accordion (role list) | Expand | 200ms | Height transition + rotate chevron |
-| Timer digits | Each second | 100ms | Subtle `scale(1.01)` pulse |
-| Night button | Idle | 3s loop | Gentle moon glow pulse |
-| FAB buttons | Appear | 300ms | `scaleIn` with 50ms stagger |
-| Kill button | Press | 600ms | Death animation cascade |
-| Revive button | Press | 500ms | Emerald glow expansion |
-| PWA update | Appear | 400ms | Sheet spring + moon icon spin |
+| Element               | Interaction     | Duration | Effect                                   |
+| --------------------- | --------------- | -------- | ---------------------------------------- |
+| All buttons           | Press           | 100ms    | `active:scale-95` (already exists, keep) |
+| Player card           | Tap to flip     | 500ms    | Spring overshoot (see 5.0)               |
+| Player card           | Hover (desktop) | 200ms    | Faction glow shadow appears              |
+| Toggle (radio group)  | Select          | 150ms    | Background color slide + `scale(1.02)`   |
+| Action chip           | Appear          | 200ms    | `fadeIn` + `translateY(4px)`             |
+| Action chip           | Remove (undo)   | 150ms    | `scaleX(0)` from center                  |
+| Bottom sheet          | Open            | 400ms    | Spring slide + backdrop blur             |
+| Bottom sheet          | Close           | 250ms    | Fast sink + backdrop fade                |
+| Accordion (role list) | Expand          | 200ms    | Height transition + rotate chevron       |
+| Timer digits          | Each second     | 100ms    | Subtle `scale(1.01)` pulse               |
+| Night button          | Idle            | 3s loop  | Gentle moon glow pulse                   |
+| FAB buttons           | Appear          | 300ms    | `scaleIn` with 50ms stagger              |
+| Kill button           | Press           | 600ms    | Death animation cascade                  |
+| Revive button         | Press           | 500ms    | Emerald glow expansion                   |
+| PWA update            | Appear          | 400ms    | Sheet spring + moon icon spin            |
 
 ---
 
@@ -1009,6 +1070,7 @@ Crossfade between steps 1 → 2 → 3:
 ### 7.1 Game Screen Layout Optimization
 
 **Current layout:**
+
 ```
 MOBILE (portrait):
   ┌──────────────────────────┐
@@ -1036,6 +1098,7 @@ TABLET/DESKTOP (landscape):
 **Proposed improvements:**
 
 1. **Sticky turn indicator above card grid** (not inside timer bar):
+
 ```
 MOBILE (portrait):
   ┌──────────────────────────┐
@@ -1052,6 +1115,7 @@ MOBILE (portrait):
 ```
 
 2. **Timer bar should be a single compact row** on mobile, not two stacked buttons:
+
 ```
 Current (verbose):
   [  ▶ Debate  ]  [ Turn 3 ]  [  ▶ Judgment  ]
@@ -1062,6 +1126,7 @@ Proposed (compact):
 ```
 
 3. **FAB redesign — single action button with expandable menu:**
+
 ```
   Instead of two FABs:  [Assign Role]  [Use Skill]
 
@@ -1103,7 +1168,7 @@ function useSwipeDismiss(onClose: () => void) {
     if (currentY.current > 100) {
       onClose(); // Dismiss
     } else if (sheetRef.current) {
-      sheetRef.current.style.transform = ''; // Snap back
+      sheetRef.current.style.transform = ""; // Snap back
     }
     currentY.current = 0;
   };
@@ -1113,12 +1178,14 @@ function useSwipeDismiss(onClose: () => void) {
 ```
 
 **Drag handle indicator:**
+
 ```tsx
 // Add at top of every BottomSheet
 <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-4 shrink-0" />
 ```
 
 **Snap points** (for full-height sheets):
+
 - Half-expanded: 50vh (default open position)
 - Full-expanded: 90vh (drag up to expand)
 - Dismissed: swipe below 30vh threshold
@@ -1130,7 +1197,9 @@ function useSwipeDismiss(onClose: () => void) {
 **Current flow:** Linear — player config then role list, side by side on tablet.
 
 **Proposed:**
+
 1. Add a **progress indicator** at top showing setup completeness:
+
 ```
   ┌─────────────────────────────────────┐
   │  Players ●─────● Roles ●─────● Go! │
@@ -1139,11 +1208,13 @@ function useSwipeDismiss(onClose: () => void) {
 ```
 
 2. **Role count vs player count warning** (U1 from audit):
+
 ```
   ⚠ 4 roles assigned but 10 players — 6 will be Villagers
 ```
 
 3. **Start button state feedback:**
+
 ```
   0 roles:  [  Start Game  ] (disabled, gray)
   1+ role:  [ ▶ START GAME ] (enabled, gradient, pulse shadow)
@@ -1161,6 +1232,7 @@ DESKTOP:           1024px+         → 4-col card grid, sidebar timer
 ```
 
 **Card sizing per breakpoint:**
+
 - Mobile: `w-full`, `min-h-[170px]` (auto-height based on content, not fixed h-44)
 - Tablet: `w-full`, `min-h-[180px]`
 - Desktop: `w-full`, `min-h-[190px]`
@@ -1205,6 +1277,7 @@ When moderator taps "Kill" on a player:
 5. **Sound sync point** — `playSound('death')` at step 1
 
 When moderator taps "Revive":
+
 1. **Card flash green** (300ms) — emerald glow
 2. **Skull fades out** (200ms)
 3. **Card resaturates** to alive state (300ms)
@@ -1232,17 +1305,25 @@ When moderator confirms "Next Night":
 
 ```css
 @keyframes nightTransition {
-  0% { opacity: 0; }
-  15% { opacity: 1; }
-  85% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .night-overlay {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: radial-gradient(ellipse at center, #1E1B4B 0%, #020203 100%);
+  background: radial-gradient(ellipse at center, #1e1b4b 0%, #020203 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1285,16 +1366,16 @@ Replace native `confirm()` with themed BottomSheet (resolves U8):
 
 ### 8.6 Sound-Visual Synchronization Points
 
-| Event | Sound | Visual |
-|---|---|---|
-| Night transition | `night-ambience.mp3` start | Night overlay + indigo gradient |
-| Day start (timer) | `day-start.mp3` (short chime) | Warm amber gradient appears |
-| Player kill | `death.mp3` (short thud) | Red flash + skull + desaturate |
-| Player revive | `revive.mp3` (short chime) | Green flash + resaturate |
-| Timer < 10s | `tick.mp3` (per second) | Shake + red glow intensify |
-| Timer expired | `buzzer.mp3` | White flash + vibrate |
-| Skill confirmed | `spell.mp3` (short whoosh) | Brief faction glow on source card |
-| Night sound stop | — | When day timer starts or manually |
+| Event             | Sound                         | Visual                            |
+| ----------------- | ----------------------------- | --------------------------------- |
+| Night transition  | `night-ambience.mp3` start    | Night overlay + indigo gradient   |
+| Day start (timer) | `day-start.mp3` (short chime) | Warm amber gradient appears       |
+| Player kill       | `death.mp3` (short thud)      | Red flash + skull + desaturate    |
+| Player revive     | `revive.mp3` (short chime)    | Green flash + resaturate          |
+| Timer < 10s       | `tick.mp3` (per second)       | Shake + red glow intensify        |
+| Timer expired     | `buzzer.mp3`                  | White flash + vibrate             |
+| Skill confirmed   | `spell.mp3` (short whoosh)    | Brief faction glow on source card |
+| Night sound stop  | —                             | When day timer starts or manually |
 
 ---
 
@@ -1302,34 +1383,40 @@ Replace native `confirm()` with themed BottomSheet (resolves U8):
 
 ### 9.1 Current Issues Found
 
-| # | Severity | Issue | File | WCAG |
-|---|---|---|---|---|
-| A1 | High | `user-scalable=no` in viewport meta — blocks zoom | `index.html:9` | 1.4.4 |
-| A2 | High | Timer overlay has no escape mechanism on touch (M12) | `timer-board.tsx:28` | 2.1.2 |
-| A3 | High | Bottom sheet backdrop `aria-label="Close"` is wrong pattern — should be `aria-hidden` backdrop + visible close button | `bottom-sheet.tsx:74` | 4.1.2 |
-| A4 | Medium | Player card `role="button"` but no `onKeyDown` for Space — only handles Enter | `player-card.tsx:298` | 2.1.1 |
-| A5 | Medium | Action chips have no `aria-label` — screen reader sees "Bite x" with no context | `player-card.tsx:60-70` | 4.1.2 |
-| A6 | Medium | Color-only faction differentiation — no icon or text label on name face | Multiple | 1.4.1 |
-| A7 | Medium | Focus visible styles missing — only browser default | Global | 2.4.7 |
-| A8 | Low | Timer display relies on color alone for type (orange=debate, red=judgment) | `timer-board.tsx:35` | 1.4.1 |
-| A9 | Low | Range inputs have no visible value label in some contexts | `player-config.tsx:27-35` | 1.3.1 |
+| #   | Severity | Issue                                                                                                                 | File                      | WCAG  |
+| --- | -------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------- | ----- |
+| A1  | High     | `user-scalable=no` in viewport meta — blocks zoom                                                                     | `index.html:9`            | 1.4.4 |
+| A2  | High     | Timer overlay has no escape mechanism on touch (M12)                                                                  | `timer-board.tsx:28`      | 2.1.2 |
+| A3  | High     | Bottom sheet backdrop `aria-label="Close"` is wrong pattern — should be `aria-hidden` backdrop + visible close button | `bottom-sheet.tsx:74`     | 4.1.2 |
+| A4  | Medium   | Player card `role="button"` but no `onKeyDown` for Space — only handles Enter                                         | `player-card.tsx:298`     | 2.1.1 |
+| A5  | Medium   | Action chips have no `aria-label` — screen reader sees "Bite x" with no context                                       | `player-card.tsx:60-70`   | 4.1.2 |
+| A6  | Medium   | Color-only faction differentiation — no icon or text label on name face                                               | Multiple                  | 1.4.1 |
+| A7  | Medium   | Focus visible styles missing — only browser default                                                                   | Global                    | 2.4.7 |
+| A8  | Low      | Timer display relies on color alone for type (orange=debate, red=judgment)                                            | `timer-board.tsx:35`      | 1.4.1 |
+| A9  | Low      | Range inputs have no visible value label in some contexts                                                             | `player-config.tsx:27-35` | 1.3.1 |
 
 ### 9.2 Proposed Fixes
 
 **A1 — Remove `user-scalable=no`:**
+
 ```html
 <!-- Before -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+/>
 
 <!-- After -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 ```
+
 The app already uses `touch-action` and `-webkit-tap-highlight-color` to prevent zoom issues. The viewport restriction is unnecessary and blocks users with low vision from zooming.
 
 **A2 — Timer escape key handler:**
 Already addressed in timer proposal (Section 6.2). Add `Escape` keydown handler.
 
 **A3 — Bottom sheet backdrop pattern:**
+
 ```tsx
 // Backdrop: aria-hidden, click handler only
 <div
@@ -1350,6 +1437,7 @@ Already addressed in timer proposal (Section 6.2). Add `Escape` keydown handler.
 Already handled in current code at line 298-302 (`e.key === " "`). Confirmed working.
 
 **A5 — Action chip aria-labels:**
+
 ```tsx
 <button
   aria-label={`${t('game.undo')} ${name} ${t('game.on')} ${playerName}`}
@@ -1359,13 +1447,15 @@ Already handled in current code at line 298-302 (`e.key === " "`). Confirmed wor
 
 **A6 — Faction text label on name face:**
 Add a small faction indicator dot + label on the name face card:
+
 ```tsx
 <span className={cn("text-[8px] font-bold uppercase tracking-wider", col.text)}>
-  {faction === 'wolf' ? '🐺' : faction === 'third' ? '👁' : '🛡'} {factionLabel}
+  {faction === "wolf" ? "🐺" : faction === "third" ? "👁" : "🛡"} {factionLabel}
 </span>
 ```
 
 **A7 — Focus visible styles (global):**
+
 ```css
 *:focus-visible {
   outline: 2px solid var(--accent-night);
@@ -1386,17 +1476,17 @@ Already present (`"Tranh Luan"` / `"Phan Quyet"`). Color is supplementary, not s
 
 ### 9.3 Dark Mode Contrast Verification (Option B palette)
 
-| Element | Foreground | Background | Ratio | Pass |
-|---|---|---|---|---|
-| Body text | #E2E8F0 | #1E1C35 | 11.4:1 | AAA |
-| Secondary text | #94A3B8 | #1E1C35 | 6.0:1 | AA |
-| Muted text | #64748B | #1E1C35 | 3.9:1 | AA-lg |
-| Villager label | #60A5FA | #1E1C35 | 6.8:1 | AA |
-| Wolf label | #F87171 | #1E1C35 | 5.5:1 | AA |
-| Third label | #C084FC | #1E1C35 | 5.0:1 | AA |
-| Button text | #FFFFFF | #6366F1 | 5.7:1 | AA |
-| Danger text | #EF4444 | #1E1C35 | 4.8:1 | AA-lg |
-| Success text | #34D399 | #1E1C35 | 7.2:1 | AA |
+| Element        | Foreground | Background | Ratio  | Pass  |
+| -------------- | ---------- | ---------- | ------ | ----- |
+| Body text      | #E2E8F0    | #1E1C35    | 11.4:1 | AAA   |
+| Secondary text | #94A3B8    | #1E1C35    | 6.0:1  | AA    |
+| Muted text     | #64748B    | #1E1C35    | 3.9:1  | AA-lg |
+| Villager label | #60A5FA    | #1E1C35    | 6.8:1  | AA    |
+| Wolf label     | #F87171    | #1E1C35    | 5.5:1  | AA    |
+| Third label    | #C084FC    | #1E1C35    | 5.0:1  | AA    |
+| Button text    | #FFFFFF    | #6366F1    | 5.7:1  | AA    |
+| Danger text    | #EF4444    | #1E1C35    | 4.8:1  | AA-lg |
+| Success text   | #34D399    | #1E1C35    | 7.2:1  | AA    |
 
 All critical text passes WCAG AA minimum. Body text achieves AAA.
 
@@ -1407,6 +1497,7 @@ All critical text passes WCAG AA minimum. Body text achieves AAA.
 ### 10.1 Font Loading Optimization
 
 **Current (render-blocking):**
+
 ```css
 /* index.css line 1 — RENDER BLOCKING */
 @import url("https://fonts.googleapis.com/css2?family=Bungee&family=Roboto:wght@400;500;700&display=swap");
@@ -1415,31 +1506,42 @@ All critical text passes WCAG AA minimum. Body text achieves AAA.
 Problem: CSS `@import` in stylesheet blocks rendering until the external CSS is fully downloaded. This adds 200-800ms to First Contentful Paint depending on network.
 
 **Proposed (non-blocking preload):**
+
 ```html
 <!-- index.html <head> -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
 <!-- Preload critical font (body text — needed immediately) -->
-<link rel="preload"
+<link
+  rel="preload"
   href="https://fonts.gstatic.com/s/inter/v18/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa2JL7SUc.woff2"
-  as="font" type="font/woff2" crossorigin />
+  as="font"
+  type="font/woff2"
+  crossorigin
+/>
 
 <!-- Non-blocking stylesheet load -->
-<link rel="stylesheet"
+<link
+  rel="stylesheet"
   href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap"
-  media="print" onload="this.media='all'" />
+  media="print"
+  onload="this.media='all'"
+/>
 
 <!-- Fallback for no-JS -->
 <noscript>
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap"
+  />
 </noscript>
 ```
 
 Then remove the `@import` from `index.css` entirely.
 
 **Impact:**
+
 - Eliminates 200-800ms of render blocking
 - First paint shows system font fallback, then swaps to custom fonts (~100ms FOUT, acceptable)
 - `font-display: swap` already in the Google Fonts URL ensures text is visible immediately
@@ -1448,13 +1550,13 @@ Then remove the `@import` from `index.css` entirely.
 
 ### 10.2 Icon Library Reduction
 
-| Metric | Current (Font Awesome) | Proposed (Lucide React) |
-|---|---|---|
-| JS bundle | 0 KB | ~8 KB (35 tree-shaken icons) |
-| CSS bundle | ~50 KB | 0 KB |
-| Font files (WOFF2) | ~300 KB (solid) + ~300 KB (regular) + ~300 KB (brands) | 0 KB |
-| **Total** | **~950 KB** | **~8 KB** |
-| **Savings** | — | **~942 KB (99.2%)** |
+| Metric             | Current (Font Awesome)                                 | Proposed (Lucide React)      |
+| ------------------ | ------------------------------------------------------ | ---------------------------- |
+| JS bundle          | 0 KB                                                   | ~8 KB (35 tree-shaken icons) |
+| CSS bundle         | ~50 KB                                                 | 0 KB                         |
+| Font files (WOFF2) | ~300 KB (solid) + ~300 KB (regular) + ~300 KB (brands) | 0 KB                         |
+| **Total**          | **~950 KB**                                            | **~8 KB**                    |
+| **Savings**        | —                                                      | **~942 KB (99.2%)**          |
 
 Additional benefit: Lucide icons are inline SVG — no flash of unstyled icon, no extra network request.
 
@@ -1463,18 +1565,25 @@ Additional benefit: Lucide icons are inline SVG — no flash of unstyled icon, n
 ### 10.3 CSS Optimization
 
 **Current CSS issues:**
+
 1. Card patterns use inline SVG data URIs in CSS (~4KB of SVG patterns)
 2. Font Awesome import loads entire icon font stylesheet
 3. Multiple animation keyframes defined globally but only used conditionally
 
 **Proposed:**
+
 1. Replace SVG data URI patterns with pure CSS patterns (gradients, repeating-linear-gradient) — saves ~3KB
 2. Remove Font Awesome import — saves ~50KB CSS
 3. Wrap animation keyframes in `@layer` to enable dead code elimination:
+
 ```css
 @layer animations {
-  @keyframes slideUp { /* ... */ }
-  @keyframes pulse { /* ... */ }
+  @keyframes slideUp {
+    /* ... */
+  }
+  @keyframes pulse {
+    /* ... */
+  }
   /* ... */
 }
 ```
@@ -1487,23 +1596,27 @@ Additional benefit: Lucide icons are inline SVG — no flash of unstyled icon, n
 
 All proposed animations use **GPU-accelerated properties only:**
 
-| Property | GPU Accelerated | Used In |
-|---|---|---|
-| `transform` | Yes | Card flip, sheet slide, button press, card entrance |
-| `opacity` | Yes | Fade transitions, death dim |
-| `filter` | Partial (GPU on modern) | Death desaturate |
-| `box-shadow` | **No** — causes repaint | Faction glow on hover |
-| `text-shadow` | **No** — causes repaint | Timer glow |
+| Property      | GPU Accelerated         | Used In                                             |
+| ------------- | ----------------------- | --------------------------------------------------- |
+| `transform`   | Yes                     | Card flip, sheet slide, button press, card entrance |
+| `opacity`     | Yes                     | Fade transitions, death dim                         |
+| `filter`      | Partial (GPU on modern) | Death desaturate                                    |
+| `box-shadow`  | **No** — causes repaint | Faction glow on hover                               |
+| `text-shadow` | **No** — causes repaint | Timer glow                                          |
 
 **Mitigation for box-shadow/text-shadow:**
+
 - Apply `will-change: transform` on card containers (promotes to compositor layer)
 - Limit glow to `:hover` state only (not continuous animation)
 - Timer glow: acceptable as only 1 element on screen during timer overlay
 
 **`prefers-reduced-motion` coverage:**
+
 ```css
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01s !important;
@@ -1515,13 +1628,13 @@ All proposed animations use **GPU-accelerated properties only:**
 
 ### 10.5 Performance Summary
 
-| Optimization | Before | After | Savings |
-|---|---|---|---|
-| Font loading | Render-blocking | Non-blocking preload | -400ms FCP |
-| Icon library | ~950 KB | ~8 KB | ~942 KB |
-| CSS cleanup | ~60 KB FA + patterns | ~7 KB clean | ~53 KB |
-| Font files | Bungee + Roboto (~120KB) | Bebas + Inter (~70KB) | ~50 KB |
-| **Total bundle reduction** | | | **~1045 KB** |
+| Optimization               | Before                   | After                 | Savings      |
+| -------------------------- | ------------------------ | --------------------- | ------------ |
+| Font loading               | Render-blocking          | Non-blocking preload  | -400ms FCP   |
+| Icon library               | ~950 KB                  | ~8 KB                 | ~942 KB      |
+| CSS cleanup                | ~60 KB FA + patterns     | ~7 KB clean           | ~53 KB       |
+| Font files                 | Bungee + Roboto (~120KB) | Bebas + Inter (~70KB) | ~50 KB       |
+| **Total bundle reduction** |                          |                       | **~1045 KB** |
 
 ---
 
@@ -1626,53 +1739,53 @@ Risk: Swipe gestures can conflict with browser back gesture — need careful thr
 /* Moonlit Gothic — Dark Mode (default) */
 :root {
   /* Backgrounds */
-  --color-bg-app: #0F0F23;
+  --color-bg-app: #0f0f23;
   --color-bg-surface: #161631;
-  --color-bg-card: #1E1C35;
-  --color-bg-elevated: #27273B;
+  --color-bg-card: #1e1c35;
+  --color-bg-elevated: #27273b;
   --color-bg-overlay: #323250;
 
   /* Text */
-  --color-text-primary: #E2E8F0;
-  --color-text-secondary: #94A3B8;
-  --color-text-muted: #64748B;
+  --color-text-primary: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
   --color-text-disabled: #475569;
 
   /* Borders */
-  --color-border-default: #4C1D95;
-  --color-border-subtle: #2D2060;
-  --color-border-hover: #5B21B6;
+  --color-border-default: #4c1d95;
+  --color-border-subtle: #2d2060;
+  --color-border-hover: #5b21b6;
 
   /* Factions */
-  --color-faction-villager: #60A5FA;
+  --color-faction-villager: #60a5fa;
   --color-faction-villager-bg: rgba(96, 165, 250, 0.08);
   --color-faction-villager-glow: rgba(96, 165, 250, 0.3);
-  --color-faction-wolf: #F87171;
+  --color-faction-wolf: #f87171;
   --color-faction-wolf-bg: rgba(248, 113, 113, 0.08);
   --color-faction-wolf-glow: rgba(248, 113, 113, 0.3);
-  --color-faction-third: #C084FC;
+  --color-faction-third: #c084fc;
   --color-faction-third-bg: rgba(192, 132, 252, 0.08);
   --color-faction-third-glow: rgba(192, 132, 252, 0.3);
 
   /* Phase Accents */
-  --color-phase-night: #818CF8;
-  --color-phase-day: #FBBF24;
-  --color-phase-judgment: #F43F5E;
+  --color-phase-night: #818cf8;
+  --color-phase-day: #fbbf24;
+  --color-phase-judgment: #f43f5e;
 
   /* Semantic */
-  --color-success: #34D399;
-  --color-warning: #FBBF24;
-  --color-danger: #EF4444;
-  --color-info: #60A5FA;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #ef4444;
+  --color-info: #60a5fa;
 
   /* Components */
-  --color-cta: #6366F1;
-  --color-cta-hover: #818CF8;
-  --color-ring: #8B5CF6;
+  --color-cta: #6366f1;
+  --color-cta-hover: #818cf8;
+  --color-ring: #8b5cf6;
 
   /* Typography */
-  --font-display: 'Bebas Neue', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-display: "Bebas Neue", sans-serif;
+  --font-body: "Inter", sans-serif;
 
   /* Spacing (consistent with Tailwind defaults) */
   --radius-sm: 0.375rem;
@@ -1690,23 +1803,23 @@ Risk: Swipe gestures can conflict with browser back gesture — need careful thr
 
 /* Light Mode Override */
 :root:not(.dark) {
-  --color-bg-app: #F8FAFC;
-  --color-bg-surface: #FFFFFF;
-  --color-bg-card: #F1F5F9;
-  --color-bg-elevated: #E2E8F0;
-  --color-bg-overlay: #CBD5E1;
+  --color-bg-app: #f8fafc;
+  --color-bg-surface: #ffffff;
+  --color-bg-card: #f1f5f9;
+  --color-bg-elevated: #e2e8f0;
+  --color-bg-overlay: #cbd5e1;
 
-  --color-text-primary: #0F172A;
+  --color-text-primary: #0f172a;
   --color-text-secondary: #475569;
-  --color-text-muted: #94A3B8;
+  --color-text-muted: #94a3b8;
 
-  --color-border-default: #E2E8F0;
-  --color-border-subtle: #F1F5F9;
-  --color-border-hover: #CBD5E1;
+  --color-border-default: #e2e8f0;
+  --color-border-subtle: #f1f5f9;
+  --color-border-hover: #cbd5e1;
 
-  --color-faction-villager: #2563EB;
-  --color-faction-wolf: #DC2626;
-  --color-faction-third: #7C3AED;
+  --color-faction-villager: #2563eb;
+  --color-faction-wolf: #dc2626;
+  --color-faction-third: #7c3aed;
 
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -1717,12 +1830,12 @@ Risk: Swipe gestures can conflict with browser back gesture — need careful thr
 
 ## Appendix B: Font Performance Comparison
 
-| Config | Fonts | Total Size | FCP Impact | Vietnamese |
-|---|---|---|---|---|
-| Current | Bungee + Roboto (3 weights) | ~120 KB | +400ms (blocking) | Partial |
-| Option A | Russo One + Chakra Petch (5 weights) | ~85 KB | 0ms (preload) | Yes |
-| Option B | Bebas Neue + Inter (4 weights) | ~70 KB | 0ms (preload) | Full |
-| Option C | Bungee + Inter (4 weights) | ~80 KB | 0ms (preload) | Full |
+| Config   | Fonts                                | Total Size | FCP Impact        | Vietnamese |
+| -------- | ------------------------------------ | ---------- | ----------------- | ---------- |
+| Current  | Bungee + Roboto (3 weights)          | ~120 KB    | +400ms (blocking) | Partial    |
+| Option A | Russo One + Chakra Petch (5 weights) | ~85 KB     | 0ms (preload)     | Yes        |
+| Option B | Bebas Neue + Inter (4 weights)       | ~70 KB     | 0ms (preload)     | Full       |
+| Option C | Bungee + Inter (4 weights)           | ~80 KB     | 0ms (preload)     | Full       |
 
 ---
 
@@ -1758,24 +1871,24 @@ src/components/common/selector-modal.tsx — 2 icons (hashtag, users, list)
 
 All questions resolved via product owner interview (2026-04-15).
 
-| # | Question | Decision | Rationale |
-|---|----------|----------|-----------|
-| 1 | Color System | **B: Moonlit Gothic** | Midnight blue + purple borders + amber accent = best werewolf atmosphere |
-| 2 | Typography | **B: Bebas Neue + Inter** | Cinematic headings + best Vietnamese body font, smallest bundle (70KB) |
-| 3 | Card Design | **A: Glowing Edge** | Faction glow borders + CSS-only patterns + dramatic skull dead state |
-| 4 | Icon Strategy | **Lucide React + 3 custom SVG** | 99.2% bundle reduction (~942KB saved) |
-| 5 | Light Mode | **Both modes now** | Full dark + light implementation from start |
-| 6 | Font Loading | **Self-host in /public** | PWA offline support, no external dependency |
-| 7 | Sound UI | **Add mute/unmute button** | Visual indicator on timer bar for night ambient sound state |
-| 8 | Mobile Layout | **Adaptive 2-col + pinch-zoom** | Keep 2-col default, allow pinch-zoom for overview |
-| 9 | Night Transition | **Full cinematic overlay (2s)** | Fullscreen + moon icon + auto-dismiss for dramatic effect |
-| 10 | Timer Urgency | **Full 3-tier system** | Calm → fast pulse → shake + red glow + vibrate at 0 |
-| 11 | Death Animation | **Full animation (0.6s)** | Red flash → skull fade-in → desaturate cascade |
-| 12 | Custom SVGs | **Phase 1 with icon migration** | Build 3 custom SVGs alongside Lucide migration |
-| 13 | Bottom Sheet | **Swipe-to-dismiss + drag handle** | Swipe ↓ >100px = close, <100px = snap back |
-| 14 | Timer Layout | **Compact single row** | All controls in 1 row on mobile |
-| 15 | PWA Dialog | **Themed BottomSheet + Moon** | Werewolf aesthetic, i18n-aware, styled buttons |
-| 16 | Setup Screen | **Progress bar + role count warning** | Step indicator + warning when roles < players |
+| #   | Question         | Decision                              | Rationale                                                                |
+| --- | ---------------- | ------------------------------------- | ------------------------------------------------------------------------ |
+| 1   | Color System     | **B: Moonlit Gothic**                 | Midnight blue + purple borders + amber accent = best werewolf atmosphere |
+| 2   | Typography       | **B: Bebas Neue + Inter**             | Cinematic headings + best Vietnamese body font, smallest bundle (70KB)   |
+| 3   | Card Design      | **A: Glowing Edge**                   | Faction glow borders + CSS-only patterns + dramatic skull dead state     |
+| 4   | Icon Strategy    | **Lucide React + 3 custom SVG**       | 99.2% bundle reduction (~942KB saved)                                    |
+| 5   | Light Mode       | **Both modes now**                    | Full dark + light implementation from start                              |
+| 6   | Font Loading     | **Self-host in /public**              | PWA offline support, no external dependency                              |
+| 7   | Sound UI         | **Add mute/unmute button**            | Visual indicator on timer bar for night ambient sound state              |
+| 8   | Mobile Layout    | **Adaptive 2-col + pinch-zoom**       | Keep 2-col default, allow pinch-zoom for overview                        |
+| 9   | Night Transition | **Full cinematic overlay (2s)**       | Fullscreen + moon icon + auto-dismiss for dramatic effect                |
+| 10  | Timer Urgency    | **Full 3-tier system**                | Calm → fast pulse → shake + red glow + vibrate at 0                      |
+| 11  | Death Animation  | **Full animation (0.6s)**             | Red flash → skull fade-in → desaturate cascade                           |
+| 12  | Custom SVGs      | **Phase 1 with icon migration**       | Build 3 custom SVGs alongside Lucide migration                           |
+| 13  | Bottom Sheet     | **Swipe-to-dismiss + drag handle**    | Swipe ↓ >100px = close, <100px = snap back                               |
+| 14  | Timer Layout     | **Compact single row**                | All controls in 1 row on mobile                                          |
+| 15  | PWA Dialog       | **Themed BottomSheet + Moon**         | Werewolf aesthetic, i18n-aware, styled buttons                           |
+| 16  | Setup Screen     | **Progress bar + role count warning** | Step indicator + warning when roles < players                            |
 
 ---
 

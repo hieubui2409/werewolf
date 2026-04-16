@@ -6,26 +6,20 @@ import App from "./App.tsx";
 import { preloadSounds } from "./utils/sounds";
 import { registerSW } from "virtual:pwa-register";
 
-// Preload sounds after initial render
-requestIdleCallback(() => preloadSounds());
+// H3: Polyfill requestIdleCallback for Safari
+const ric =
+  window.requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1));
 
-// PWA: prompt-to-reload
+// Preload sounds after initial render
+ric(() => preloadSounds());
+
+// U8: PWA update via themed BottomSheet (replaces native confirm)
 const updateSW = registerSW({
   onNeedRefresh() {
-    if (confirm("Có bản cập nhật mới. Tải lại?")) {
-      updateSW(true);
-    }
+    window.dispatchEvent(new CustomEvent("sw-update-available"));
   },
 });
-
-// Theme: apply saved preference or system default
-const savedTheme = localStorage.getItem("werewolf-theme");
-if (
-  savedTheme === "dark" ||
-  (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)
-) {
-  document.documentElement.classList.add("dark");
-}
+(window as unknown as { __updateSW?: typeof updateSW }).__updateSW = updateSW;
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

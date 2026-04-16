@@ -8,7 +8,13 @@ import {
   executeAction,
   undoAction,
 } from "../game-store-actions";
-import type { Player, RoleTemplate, GameRole, Ability } from "../../types/game";
+import type {
+  Player,
+  RoleTemplate,
+  GameRole,
+  Ability,
+  ActionLog,
+} from "../../types/game";
 
 describe("game-store-actions: Pure Functions", () => {
   describe("createInitialPlayers", () => {
@@ -407,11 +413,13 @@ describe("game-store-actions: Pure Functions", () => {
     });
 
     it("multiple executions increment usage separately", () => {
+      // Use a limited ability with max > 1 to allow multiple uses
+      const limitedAbility = { ...ability, type: "limited" as const, max: 3 };
       let result = executeAction(
         players,
         actionLog,
         1,
-        ability,
+        limitedAbility,
         [2],
         "wolf",
         1,
@@ -420,7 +428,7 @@ describe("game-store-actions: Pure Functions", () => {
         result.players,
         result.actionLog,
         1,
-        ability,
+        limitedAbility,
         [3],
         "wolf",
         1,
@@ -437,10 +445,10 @@ describe("game-store-actions: Pure Functions", () => {
     });
 
     it("appends to existing action log", () => {
-      const existing = [
+      const existing: ActionLog[] = [
         {
           id: "old",
-          executionId: 1,
+          executionId: "exec_old",
           turnAdded: 1,
           sourceId: 2,
           targetId: 3,
@@ -448,6 +456,7 @@ describe("game-store-actions: Pure Functions", () => {
           abilityName: "Old",
           abilityType: "nightly" as const,
           faction: "villager" as const,
+          timestamp: Date.now(),
         },
       ];
       const result = executeAction(
@@ -473,11 +482,16 @@ describe("game-store-actions: Pure Functions", () => {
       const ability = {
         id: "a_bite",
         name: "Bite",
-        type: "nightly" as const,
-        max: 0,
+        type: "limited" as const,
+        max: 3,
         targetCount: 1,
       };
-      const result = executeAction(players, [], 1, ability, [2, 3], "wolf", 1);
+      // First execution with target [2]
+      let result = executeAction(players, [], 1, ability, [2], "wolf", 1);
+      players = result.players;
+      actionLog = result.actionLog;
+      // Second execution with target [3]
+      result = executeAction(players, actionLog, 1, ability, [3], "wolf", 1);
       players = result.players;
       actionLog = result.actionLog;
     });
@@ -490,7 +504,7 @@ describe("game-store-actions: Pure Functions", () => {
     });
 
     it("does not decrement usage until last action in group removed", () => {
-      const actionId = actionLog[0].id;
+      const actionId = actionLog[1].id;
       const result = undoAction(players, actionLog, actionId);
       expect(result.players[0].abilityUsage["a_bite"]).toBe(1);
     });
@@ -526,8 +540,10 @@ describe("game-store-actions: Pure Functions", () => {
       actionsInGroup.forEach((a) => {
         result = undoAction(result.players, result.actionLog, a.id);
       });
-      expect(result.actionLog).toHaveLength(0);
-      expect(result.players[0].abilityUsage["a_bite"]).toBe(0);
+      // After removing first execution group, should have 1 action left (from second execution)
+      expect(result.actionLog).toHaveLength(1);
+      // Ability usage should be 1 (only second execution remains)
+      expect(result.players[0].abilityUsage["a_bite"]).toBe(1);
     });
   });
 });

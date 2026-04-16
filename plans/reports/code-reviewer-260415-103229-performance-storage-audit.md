@@ -14,7 +14,8 @@ The `partialize` function includes `roleTemplates` in persisted state. `roleTemp
 
 **Impact:** High — localStorage writes are synchronous and block the main thread. On low-end mobile devices used as moderator tablets, this causes noticeable jank during rapid interactions (typing player names, flipping cards).
 
-**Fix:** 
+**Fix:**
+
 - Remove `roleTemplates` from `partialize` — it's derived from `DEFAULT_ROLES` + custom roles. Persist only custom templates.
 - Add `debounce` or `throttle` to the persist middleware (Zustand supports `options.skipHydration` but a simple `merge` + debounced `setItem` wrapper is cleaner).
 - Consider removing `gameHistory` from persist or capping it (e.g., last 5 turns).
@@ -93,7 +94,8 @@ Every one of these 7 subscriptions triggers a re-render whenever its slice chang
 
 ### 5. `AssignRoleSheet` and `SkillSheet` Also Always Mounted — Same Pattern
 
-**Files:** 
+**Files:**
+
 - `/src/components/game/assign-role-sheet.tsx` — subscribes to `players`, `togglePlayerRole`, `useSortedRoles()`
 - `/src/components/game/skill-sheet.tsx` — subscribes to `players`, `executeAction`, `useSortedRoles()`
 - `/src/components/game/night-confirm-sheet.tsx` — subscribes to `nightCount`, `nextNight`
@@ -133,7 +135,9 @@ export function playSound(name: SoundName): void {
     const audio = audioCache[name] || new Audio(SOUND_MAP[name]);
     audio.currentTime = 0;
     audio.play().catch(() => {});
-  } catch { /* no-op */ }
+  } catch {
+    /* no-op */
+  }
 }
 ```
 
@@ -143,13 +147,14 @@ Additionally, `preloadSounds()` stores **one** `Audio` element per sound. For th
 
 **Impact:** Medium — Audible glitch on timer countdown. The 1.1MB night ambience file is preloaded eagerly via `requestIdleCallback` even if no game is started — wastes bandwidth on initial load.
 
-**Fix:** 
+**Fix:**
+
 - For tick: clone the audio element (`audioCache[name].cloneNode()`) or use Web Audio API.
 - For preload: lazy-load night ambience only when game starts (not on page load).
 
 ---
 
-### 8. `nextNight()` — O(P*R) Player Reset Loop
+### 8. `nextNight()` — O(P\*R) Player Reset Loop
 
 **File:** `/src/store/game-store.ts` lines 276-286
 
@@ -214,18 +219,18 @@ roleTemplates: [...DEFAULT_ROLES],
 
 ## Summary Table
 
-| # | Issue | Impact | File |
-|---|-------|--------|------|
-| 1 | localStorage persists `roleTemplates` + `gameHistory` unbounded, sync write on every mutation | **High** | game-store.ts |
-| 2 | `flipCard` creates new `flippedCards` object, cascading GameScreen re-render | **Medium** | game-store.ts |
-| 3 | Inline arrow callbacks for PlayerActionSheet in GameScreen | **Low-Med** | game-screen.tsx |
-| 4 | HistorySheet always mounted, 7 subscriptions re-render on every mutation when invisible | **High** | history-sheet.tsx, game-screen.tsx |
-| 5 | All 6 sheets always mounted — ~30 redundant store subscriptions | **Medium** | game-screen.tsx |
-| 6 | GameScreen subscribes to flippedCards object (covered by #2) | **Low** | game-screen.tsx |
-| 7 | Audio playback restarts instead of overlapping; 1.1MB eager preload | **Medium** | sounds.ts |
-| 8 | O(P*R) linear scan in nextNight() + sync persist write | **Low** | game-store.ts |
-| 9 | SkillSheet useEffect re-fires on player mutation — correctness bug | **Medium** | skill-sheet.tsx |
-| 10 | DEFAULT_ROLES shallow spread — latent fragility | **Low** | game-store.ts |
+| #   | Issue                                                                                         | Impact      | File                               |
+| --- | --------------------------------------------------------------------------------------------- | ----------- | ---------------------------------- |
+| 1   | localStorage persists `roleTemplates` + `gameHistory` unbounded, sync write on every mutation | **High**    | game-store.ts                      |
+| 2   | `flipCard` creates new `flippedCards` object, cascading GameScreen re-render                  | **Medium**  | game-store.ts                      |
+| 3   | Inline arrow callbacks for PlayerActionSheet in GameScreen                                    | **Low-Med** | game-screen.tsx                    |
+| 4   | HistorySheet always mounted, 7 subscriptions re-render on every mutation when invisible       | **High**    | history-sheet.tsx, game-screen.tsx |
+| 5   | All 6 sheets always mounted — ~30 redundant store subscriptions                               | **Medium**  | game-screen.tsx                    |
+| 6   | GameScreen subscribes to flippedCards object (covered by #2)                                  | **Low**     | game-screen.tsx                    |
+| 7   | Audio playback restarts instead of overlapping; 1.1MB eager preload                           | **Medium**  | sounds.ts                          |
+| 8   | O(P\*R) linear scan in nextNight() + sync persist write                                       | **Low**     | game-store.ts                      |
+| 9   | SkillSheet useEffect re-fires on player mutation — correctness bug                            | **Medium**  | skill-sheet.tsx                    |
+| 10  | DEFAULT_ROLES shallow spread — latent fragility                                               | **Low**     | game-store.ts                      |
 
 ## Recommended Priority
 

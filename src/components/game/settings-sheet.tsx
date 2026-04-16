@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Settings, Trash2 } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import { BottomSheet } from "../common/bottom-sheet";
 import type { CardViewMode } from "../../types/game";
@@ -23,15 +24,6 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
   const setTimerSettings = useGameStore((s) => s.setTimerSettings);
   const resetGame = useGameStore((s) => s.resetGame);
   const [showReset, setShowReset] = useState(false);
-  const [isDark, setIsDark] = useState(() =>
-    document.documentElement.classList.contains("dark"),
-  );
-
-  const toggleTheme = () => {
-    const next = document.documentElement.classList.toggle("dark");
-    localStorage.setItem("werewolf-theme", next ? "dark" : "light");
-    setIsDark(next);
-  };
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -48,13 +40,13 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
       isOpen={isOpen}
       onClose={onClose}
       title={t("settings.title", "Cài Đặt")}
-      icon="fa-cog"
+      icon={<Settings size={20} />}
       fullHeight
     >
       <div className="space-y-6">
         {/* Card View Mode */}
         <div>
-          <label className="text-sm font-bold text-gray-600 dark:text-slate-400 uppercase tracking-wider mb-2 block">
+          <label className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-2 block">
             {t("settings.cardView")}
           </label>
           <div
@@ -70,8 +62,8 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
                 onClick={() => setCardViewMode(m.value)}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition active:scale-95 ${
                   cardViewMode === m.value
-                    ? "bg-indigo-600 text-white shadow-lg"
-                    : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400"
+                    ? "bg-cta text-white shadow-lg"
+                    : "bg-bg-elevated text-text-secondary"
                 }`}
               >
                 {t(m.labelKey, m.value)}
@@ -82,7 +74,7 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
 
         {/* Timer Settings */}
         <div>
-          <label className="text-sm font-bold text-gray-600 dark:text-slate-400 uppercase tracking-wider mb-2 block">
+          <label className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-2 block">
             {t("settings.debateTime")}:{" "}
             <span className="text-indigo-500">{timerSettings.debate}s</span>
           </label>
@@ -104,7 +96,7 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
           />
         </div>
         <div>
-          <label className="text-sm font-bold text-gray-600 dark:text-slate-400 uppercase tracking-wider mb-2 block">
+          <label className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-2 block">
             {t("settings.judgmentTime")}:{" "}
             <span className="text-red-500">{timerSettings.judgment}s</span>
           </label>
@@ -126,50 +118,9 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
           />
         </div>
 
-        {/* Theme Toggle */}
-        <div>
-          <label className="text-sm font-bold text-gray-600 dark:text-slate-400 uppercase tracking-wider mb-2 block">
-            {t("settings.theme")}
-          </label>
-          <div
-            role="radiogroup"
-            aria-label={t("settings.theme")}
-            className="flex gap-2"
-          >
-            <button
-              role="radio"
-              aria-checked={isDark}
-              onClick={() => {
-                if (!isDark) toggleTheme();
-              }}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition active:scale-95 ${
-                isDark
-                  ? "bg-indigo-600 text-white shadow-lg"
-                  : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400"
-              }`}
-            >
-              <i className="fas fa-moon mr-1" /> {t("settings.dark")}
-            </button>
-            <button
-              role="radio"
-              aria-checked={!isDark}
-              onClick={() => {
-                if (isDark) toggleTheme();
-              }}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition active:scale-95 ${
-                !isDark
-                  ? "bg-amber-500 text-white shadow-lg"
-                  : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400"
-              }`}
-            >
-              <i className="fas fa-sun mr-1" /> {t("settings.light")}
-            </button>
-          </div>
-        </div>
-
         {/* Language */}
         <div>
-          <label className="text-sm font-bold text-gray-600 dark:text-slate-400 uppercase tracking-wider mb-2 block">
+          <label className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-2 block">
             {t("settings.language")}
           </label>
           <div
@@ -183,8 +134,8 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
               onClick={() => changeLanguage("vi")}
               className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition active:scale-95 ${
                 i18n.language === "vi"
-                  ? "bg-indigo-600 text-white shadow-lg"
-                  : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400"
+                  ? "bg-cta text-white shadow-lg"
+                  : "bg-bg-elevated text-text-secondary"
               }`}
             >
               Tiếng Việt
@@ -195,8 +146,8 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
               onClick={() => changeLanguage("en")}
               className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition active:scale-95 ${
                 i18n.language === "en"
-                  ? "bg-indigo-600 text-white shadow-lg"
-                  : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400"
+                  ? "bg-cta text-white shadow-lg"
+                  : "bg-bg-elevated text-text-secondary"
               }`}
             >
               English
@@ -205,14 +156,14 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
         </div>
 
         {/* Reset */}
-        <div className="pt-4 border-t border-gray-200 dark:border-slate-700">
+        <div className="pt-4 border-t border-border-default">
           {!showReset ? (
             <button
               onClick={() => setShowReset(true)}
               className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-black rounded-xl transition active:scale-95 uppercase"
               aria-describedby="reset-warning"
             >
-              <i className="fas fa-trash mr-2" />
+              <Trash2 size={16} className="mr-2 inline" />
               {t("settings.resetGame")}
             </button>
           ) : (
@@ -226,7 +177,7 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowReset(false)}
-                  className="flex-1 py-3 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 font-bold rounded-xl transition active:scale-95"
+                  className="flex-1 py-3 bg-bg-elevated text-text-secondary font-bold rounded-xl transition active:scale-95"
                 >
                   {t("common.cancel")}
                 </button>
