@@ -8,7 +8,6 @@
     "createCustomRole": "TẠO ROLE TÙY CHỈNH",
     "confirmDeleteRole": "Xóa vai {{name}}? Các người chơi đã gán sẽ mất vai.",
     "noTarget": "0",
-    "willBeVillager": "role trùng lặp hoặc {{count}} sẽ là dân làng",
     "nightly": "Đêm",
     "limited": "Giới hạn",
     "addAbility": "Thêm kỹ năng",

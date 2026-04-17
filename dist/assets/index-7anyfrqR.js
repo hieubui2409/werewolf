@@ -15464,7 +15464,6 @@ var jt = () => ({
               createCustomRole: `TẠO ROLE TÙY CHỈNH`,
               confirmDeleteRole: `Xóa vai {{name}}? Các người chơi đã gán sẽ mất vai.`,
               noTarget: `0`,
-              willBeVillager: `role trùng lặp hoặc {{count}} sẽ là dân làng`,
               nightly: `Đêm`,
               limited: `Giới hạn`,
               addAbility: `Thêm kỹ năng`,
@@ -15688,7 +15687,6 @@ var jt = () => ({
               createCustomRole: `CREATE CUSTOM ROLE`,
               confirmDeleteRole: `Delete role {{name}}? Assigned players will lose their role.`,
               noTarget: `0`,
-              willBeVillager: `duplicate roles or {{count}} will be Villager`,
               nightly: `Nightly`,
               limited: `Limited`,
               addAbility: `Add Ability`,
@@ -19251,34 +19249,6 @@ function Tr() {
               }),
             ],
           }),
-          t.length > 0 &&
-            t.length < n &&
-            (0, M.jsxs)(`div`, {
-              className: `flex items-center gap-2 bg-amber-900/20 border border-amber-500/30 rounded-lg px-3 py-2 mb-3`,
-              children: [
-                (0, M.jsx)(vn, {
-                  size: 14,
-                  className: `text-amber-400 shrink-0`,
-                }),
-                (0, M.jsxs)(`p`, {
-                  className: `text-[11px] text-amber-400 font-bold`,
-                  children: [
-                    t.length,
-                    ` `,
-                    e(`setup.roles`),
-                    ` / `,
-                    n,
-                    ` `,
-                    e(`setup.playerCount`),
-                    ` —`,
-                    ` `,
-                    e(`setup.willBeVillager`, {
-                      count: Math.abs(n - t.length),
-                    }),
-                  ],
-                }),
-              ],
-            }),
           (0, M.jsxs)(`button`, {
             onClick: () => {
               t.length !== 0 && r(`game`);
@@ -19822,39 +19792,40 @@ function Ur({ ab: e, used: t, exhausted: n, role: r, onUseSkill: i }) {
 }
 var Wr = (0, _.memo)(function ({
   player: e,
-  role: t,
-  actions: n,
-  isFlipped: r,
-  viewMode: i,
-  onFlip: a,
-  onSelect: o,
-  onUndoAction: s,
-  onUseSkill: c,
+  displayNumber: t,
+  role: n,
+  actions: r,
+  isFlipped: i,
+  viewMode: a,
+  onFlip: o,
+  onSelect: s,
+  onUndoAction: c,
+  onUseSkill: l,
 }) {
-  let { t: l } = j(),
-    u = e.roleId === null,
-    d = l(`game.villager`, `Dân Làng`),
-    f = u ? d : Lr(l, t?.nameKey, t?.name || d),
-    p = t?.abilities || [],
-    m = u ? `villager` : t?.faction || `villager`,
-    h = pr(m),
-    g = e.alive ? `` : `line-through opacity-60`,
-    [v, y] = (0, _.useState)(``),
-    b = (0, _.useRef)(e.alive);
+  let { t: u } = j(),
+    d = e.roleId === null,
+    f = u(`game.villager`, `Dân Làng`),
+    p = d ? f : Lr(u, n?.nameKey, n?.name || f),
+    m = n?.abilities || [],
+    h = d ? `villager` : n?.faction || `villager`,
+    g = pr(h),
+    v = e.alive ? `` : `line-through opacity-60`,
+    [y, b] = (0, _.useState)(``),
+    x = (0, _.useRef)(e.alive);
   (0, _.useEffect)(() => {
-    (b.current && !e.alive
-      ? y(`death-anim`)
-      : !b.current && e.alive && y(`revive-anim`),
-      (b.current = e.alive));
+    (x.current && !e.alive
+      ? b(`death-anim`)
+      : !x.current && e.alive && b(`revive-anim`),
+      (x.current = e.alive));
   }, [e.alive]);
-  let x = (0, _.useCallback)(() => y(``), []),
-    S = !e.alive && !v ? `dead-card` : ``;
-  if (i === `both`)
+  let S = (0, _.useCallback)(() => b(``), []),
+    C = !e.alive && !y ? `dead-card` : ``;
+  if (a === `both`)
     return (0, M.jsx)(`div`, {
       className: `w-full h-full min-h-[140px] md:min-h-[180px] lg:min-h-[190px]`,
       children: (0, M.jsxs)(`div`, {
-        className: `w-full h-full p-3 flex flex-col rounded-2xl relative border ${h.border} bg-bg-card shadow-card overflow-y-auto hide-scrollbar card-pattern-${m} ${zr[m] ?? ``} transition-shadow ${S} ${v}`,
-        onAnimationEnd: x,
+        className: `w-full h-full p-3 flex flex-col rounded-2xl relative border ${g.border} bg-bg-card shadow-card overflow-y-auto hide-scrollbar card-pattern-${h} ${zr[h] ?? ``} transition-shadow ${C} ${y}`,
+        onAnimationEnd: S,
         children: [
           !e.alive && (0, M.jsx)(Br, {}),
           (0, M.jsxs)(`div`, {
@@ -19862,54 +19833,54 @@ var Wr = (0, _.memo)(function ({
             children: [
               (0, M.jsx)(`span`, {
                 className: `bg-bg-elevated text-text-primary w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0`,
-                children: e.id,
+                children: t,
               }),
               (0, M.jsxs)(`div`, {
-                className: `text-[11px] font-black uppercase tracking-widest truncate ml-2 text-center flex-1 ${h.text}`,
-                children: [Rr[m], ` `, f],
+                className: `text-[11px] font-black uppercase tracking-widest truncate ml-2 text-center flex-1 ${g.text}`,
+                children: [Rr[h], ` `, p],
               }),
               (0, M.jsx)(`button`, {
-                onClick: (t) => o(e.id, t),
+                onClick: (t) => s(e.id, t),
                 className: `text-text-muted hover:text-text-primary ml-2 p-1`,
-                "aria-label": l(`common.playerOptions`),
+                "aria-label": u(`common.playerOptions`),
                 children: (0, M.jsx)(tn, { size: 14 }),
               }),
             ],
           }),
           (0, M.jsx)(`div`, {
-            className: `font-black text-lg text-text-primary truncate px-1 text-center mb-5 ${g}`,
+            className: `font-black text-lg text-text-primary truncate px-1 text-center mb-5 ${v}`,
             children: e.name,
           }),
-          !u &&
-            p.length > 0 &&
-            t &&
+          !d &&
+            m.length > 0 &&
+            n &&
             (0, M.jsx)(`div`, {
               className: `flex flex-col md:flex-row md:flex-wrap md:justify-center gap-1 mb-3`,
               onClick: (e) => e.stopPropagation(),
-              children: p.map((n) => {
-                let r = e.abilityUsage[n.id] || 0;
+              children: m.map((t) => {
+                let r = e.abilityUsage[t.id] || 0;
                 return (0, M.jsx)(
                   Ur,
                   {
-                    ab: n,
+                    ab: t,
                     used: r,
-                    exhausted: n.type === `limited` && r >= n.max,
-                    role: t,
-                    onUseSkill: c,
+                    exhausted: t.type === `limited` && r >= t.max,
+                    role: n,
+                    onUseSkill: l,
                   },
-                  n.id,
+                  t.id,
                 );
               }),
             }),
           (0, M.jsx)(Hr, {
-            actions: n,
-            onUndoAction: s,
-            onOverflowClick: (t) => o(e.id, t),
+            actions: r,
+            onUndoAction: c,
+            onOverflowClick: (t) => s(e.id, t),
           }),
         ],
       }),
     });
-  let C = (0, M.jsxs)(`div`, {
+  let w = (0, M.jsxs)(`div`, {
       className: `flip-face p-3 bg-bg-card border border-border-default rounded-xl card-pattern-mixed`,
       children: [
         !e.alive && (0, M.jsx)(Br, {}),
@@ -19917,31 +19888,31 @@ var Wr = (0, _.memo)(function ({
           className: `flex justify-between items-start mb-2`,
           children: (0, M.jsx)(`span`, {
             className: `w-7 h-7 rounded-full flex items-center justify-center font-black text-sm bg-bg-elevated text-text-primary`,
-            children: e.id,
+            children: t,
           }),
         }),
         (0, M.jsx)(`div`, {
           className: `text-center mt-auto mb-auto`,
           children: (0, M.jsx)(`div`, {
-            className: `font-black text-xl truncate px-1 text-text-primary ${g}`,
+            className: `font-black text-xl truncate px-1 text-text-primary ${v}`,
             children: e.name,
           }),
         }),
         (0, M.jsx)(Hr, {
-          actions: n,
-          onUndoAction: s,
-          onOverflowClick: (t) => o(e.id, t),
+          actions: r,
+          onUndoAction: c,
+          onOverflowClick: (t) => s(e.id, t),
         }),
         (0, M.jsx)(`button`, {
-          onClick: (t) => o(e.id, t),
+          onClick: (t) => s(e.id, t),
           className: `absolute top-2 right-2 text-text-muted hover:text-text-primary p-2`,
-          "aria-label": l(`common.playerOptions`),
+          "aria-label": u(`common.playerOptions`),
           children: (0, M.jsx)(tn, { size: 14 }),
         }),
       ],
     }),
-    w = (0, M.jsxs)(`div`, {
-      className: `flip-face flip-back p-2 ${h.bgLight} border ${h.border} rounded-xl card-pattern-${m}`,
+    ee = (0, M.jsxs)(`div`, {
+      className: `flip-face flip-back p-2 ${g.bgLight} border ${g.border} rounded-xl card-pattern-${h}`,
       children: [
         !e.alive && (0, M.jsx)(Br, {}),
         (0, M.jsxs)(`div`, {
@@ -19949,12 +19920,12 @@ var Wr = (0, _.memo)(function ({
           children: [
             (0, M.jsx)(`span`, {
               className: `bg-bg-elevated text-text-secondary w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs`,
-              children: e.id,
+              children: t,
             }),
             (0, M.jsx)(`button`, {
-              onClick: (t) => o(e.id, t),
+              onClick: (t) => s(e.id, t),
               className: `text-text-muted hover:text-text-primary p-1 -mt-1`,
-              "aria-label": l(`common.playerOptions`),
+              "aria-label": u(`common.playerOptions`),
               children: (0, M.jsx)(tn, { size: 14 }),
             }),
           ],
@@ -19962,56 +19933,56 @@ var Wr = (0, _.memo)(function ({
         (0, M.jsx)(`div`, {
           className: `text-center mt-1 mb-4`,
           children: (0, M.jsx)(`div`, {
-            className: `font-black text-[15px] truncate px-1 uppercase tracking-widest ${h.textBright}`,
-            children: f,
+            className: `font-black text-[15px] truncate px-1 uppercase tracking-widest ${g.textBright}`,
+            children: p,
           }),
         }),
         (0, M.jsx)(`div`, {
           className: `flex-1 flex flex-col md:flex-row md:flex-wrap md:justify-center justify-start text-center gap-1`,
           onClick: (e) => e.stopPropagation(),
-          children: u
+          children: d
             ? (0, M.jsx)(`span`, {
                 className: `text-[11px] text-text-muted italic font-bold`,
-                children: l(`game.noAbility`, `Không kỹ năng`),
+                children: u(`game.noAbility`, `Không kỹ năng`),
               })
-            : t &&
-              p.map((n) => {
-                let r = e.abilityUsage[n.id] || 0;
+            : n &&
+              m.map((t) => {
+                let r = e.abilityUsage[t.id] || 0;
                 return (0, M.jsx)(
                   Ur,
                   {
-                    ab: n,
+                    ab: t,
                     used: r,
-                    exhausted: n.type === `limited` && r >= n.max,
-                    role: t,
-                    onUseSkill: c,
+                    exhausted: t.type === `limited` && r >= t.max,
+                    role: n,
+                    onUseSkill: l,
                   },
-                  n.id,
+                  t.id,
                 );
               }),
         }),
         (0, M.jsx)(Hr, {
-          actions: n,
-          onUndoAction: s,
-          onOverflowClick: (t) => o(e.id, t),
+          actions: r,
+          onUndoAction: c,
+          onOverflowClick: (t) => s(e.id, t),
         }),
       ],
     }),
-    ee = i === `roleFirst` ? !r : r;
+    T = a === `roleFirst` ? !i : i;
   return (0, M.jsx)(`div`, {
-    className: `flip-container w-full h-full min-h-[140px] md:min-h-[180px] lg:min-h-[190px] cursor-pointer ${ee ? `flipped` : ``} ${S} ${v}`,
-    onAnimationEnd: x,
-    onClick: () => a(e.id),
+    className: `flip-container w-full h-full min-h-[140px] md:min-h-[180px] lg:min-h-[190px] cursor-pointer ${T ? `flipped` : ``} ${C} ${y}`,
+    onAnimationEnd: S,
+    onClick: () => o(e.id),
     role: `button`,
-    "aria-label": `${e.name} - ${f}`,
-    "aria-expanded": ee,
+    "aria-label": `${e.name} - ${p}`,
+    "aria-expanded": T,
     tabIndex: 0,
     onKeyDown: (t) => {
-      (t.key === `Enter` || t.key === ` `) && (t.preventDefault(), a(e.id));
+      (t.key === `Enter` || t.key === ` `) && (t.preventDefault(), o(e.id));
     },
     children: (0, M.jsxs)(`div`, {
-      className: `flip-inner shadow-card rounded-xl ${zr[m] ?? ``} transition-shadow`,
-      children: [C, w],
+      className: `flip-inner shadow-card rounded-xl ${zr[h] ?? ``} transition-shadow`,
+      children: [w, ee],
     }),
   });
 });
@@ -21124,6 +21095,7 @@ function ei() {
                   style: { animationDelay: `${t * 40}ms` },
                   children: (0, M.jsx)(Wr, {
                     player: e,
+                    displayNumber: t + 1,
                     role: e.roleId ? d.get(e.roleId) : void 0,
                     actions: f.get(e.id) ?? Qr,
                     isFlipped: !!i[e.id],

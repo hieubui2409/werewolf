@@ -53,6 +53,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         player={basePlayer}
+        displayNumber={1}
         role={undefined}
         actions={[]}
         isFlipped={false}
@@ -71,6 +72,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         player={basePlayer}
+        displayNumber={1}
         role={undefined}
         actions={[]}
         isFlipped={false}
@@ -91,6 +93,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         player={playerWithRole}
+        displayNumber={1}
         role={roleTemplate}
         actions={[]}
         isFlipped={true}
@@ -109,6 +112,7 @@ describe("PlayerCard", () => {
     const { container } = render(
       <PlayerCard
         player={basePlayer}
+        displayNumber={1}
         role={undefined}
         actions={[]}
         isFlipped={false}
@@ -132,6 +136,7 @@ describe("PlayerCard", () => {
     const { container } = render(
       <PlayerCard
         player={basePlayer}
+        displayNumber={1}
         role={undefined}
         actions={[]}
         isFlipped={true}
@@ -153,6 +158,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         player={deadPlayer}
+        displayNumber={1}
         role={undefined}
         actions={[]}
         isFlipped={false}
@@ -175,6 +181,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         player={alivePlayer}
+        displayNumber={1}
         role={undefined}
         actions={[]}
         isFlipped={false}
@@ -196,6 +203,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         player={playerWithRole}
+        displayNumber={1}
         role={roleTemplate}
         actions={[]}
         isFlipped={false}
@@ -217,6 +225,7 @@ describe("PlayerCard", () => {
     const { container } = render(
       <PlayerCard
         player={playerWithRole}
+        displayNumber={1}
         role={roleTemplate}
         actions={[]}
         isFlipped={true}
@@ -237,6 +246,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         player={basePlayer}
+        displayNumber={1}
         role={undefined}
         actions={[]}
         isFlipped={false}
@@ -260,6 +270,7 @@ describe("PlayerCard", () => {
     const { container } = render(
       <PlayerCard
         player={player}
+        displayNumber={1}
         role={undefined}
         actions={[]}
         isFlipped={false}
@@ -283,6 +294,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         player={playerWithRole}
+        displayNumber={1}
         role={roleTemplate}
         actions={[]}
         isFlipped={true}
@@ -312,6 +324,7 @@ describe("PlayerCard", () => {
     const { container } = render(
       <PlayerCard
         player={playerWithoutRole}
+        displayNumber={1}
         role={villagerRole}
         actions={[]}
         isFlipped={true}
@@ -348,6 +361,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         player={basePlayer}
+        displayNumber={1}
         role={undefined}
         actions={actions}
         isFlipped={false}
@@ -383,6 +397,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         player={basePlayer}
+        displayNumber={1}
         role={undefined}
         actions={actions}
         isFlipped={false}
@@ -408,6 +423,7 @@ describe("PlayerCard", () => {
     const { container } = render(
       <PlayerCard
         player={playerWithRole}
+        displayNumber={1}
         role={roleTemplate}
         actions={[]}
         isFlipped={false}
@@ -428,6 +444,7 @@ describe("PlayerCard", () => {
     const { container } = render(
       <PlayerCard
         player={basePlayer}
+        displayNumber={1}
         role={undefined}
         actions={[]}
         isFlipped={false}
@@ -451,6 +468,7 @@ describe("PlayerCard", () => {
     const { container } = render(
       <PlayerCard
         player={basePlayer}
+        displayNumber={1}
         role={undefined}
         actions={[]}
         isFlipped={false}
@@ -474,6 +492,7 @@ describe("PlayerCard", () => {
     const { container } = render(
       <PlayerCard
         player={basePlayer}
+        displayNumber={1}
         role={undefined}
         actions={[]}
         isFlipped={false}

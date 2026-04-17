@@ -204,6 +204,7 @@ export function GameScreen() {
             >
               <PlayerCard
                 player={player}
+                displayNumber={index + 1}
                 role={player.roleId ? roleMap.get(player.roleId) : undefined}
                 actions={actionMap.get(player.id) ?? EMPTY_ACTIONS}
                 isFlipped={!!flippedCards[player.id]}

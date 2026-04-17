@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Moon, Settings, BookOpen, Play, AlertTriangle } from "lucide-react";
+import { Moon, Settings, BookOpen, Play } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import { PlayerConfig } from "./player-config";
 import { RoleList } from "./role-list";
@@ -117,20 +117,6 @@ export function SetupScreen() {
             Go!
           </div>
         </div>
-
-        {/* Role count warning */}
-        {roles.length > 0 && roles.length < playerCount && (
-          <div className="flex items-center gap-2 bg-amber-900/20 border border-amber-500/30 rounded-lg px-3 py-2 mb-3">
-            <AlertTriangle size={14} className="text-amber-400 shrink-0" />
-            <p className="text-[11px] text-amber-400 font-bold">
-              {roles.length} {t("setup.roles")} / {playerCount}{" "}
-              {t("setup.playerCount")} —{" "}
-              {t("setup.willBeVillager", {
-                count: Math.abs(playerCount - roles.length),
-              })}
-            </p>
-          </div>
-        )}
 
         <button
           onClick={handleStartGame}

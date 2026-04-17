@@ -15,16 +15,16 @@ if (!self.define) {
         return e;
       })
   );
-  self.define = (n, o) => {
-    const r =
+  self.define = (n, r) => {
+    const o =
       e ||
       ("document" in self ? document.currentScript.src : "") ||
       location.href;
-    if (i[r]) return;
+    if (i[o]) return;
     let f = {};
-    const t = (e) => s(e, r),
-      d = { module: { uri: r }, exports: f, require: t };
-    i[r] = Promise.all(n.map((e) => d[e] || t(e))).then((e) => (o(...e), f));
+    const t = (e) => s(e, o),
+      d = { module: { uri: o }, exports: f, require: t };
+    i[o] = Promise.all(n.map((e) => d[e] || t(e))).then((e) => (r(...e), f));
   };
 }
 define(["./workbox-1ef09536"], function (e) {
@@ -34,7 +34,7 @@ define(["./workbox-1ef09536"], function (e) {
   }),
     e.precacheAndRoute(
       [
-        { url: "index.html", revision: "6730d05a8109d83ce29fc330cc3650da" },
+        { url: "index.html", revision: "8710027bc3990c8301a9ac04d3c21a68" },
         { url: "icons.svg", revision: "3b4fcfcf393eca4d264dca4a4663bc37" },
         { url: "favicon.svg", revision: "7e840862161341271697daa99a40d76b" },
         {
@@ -70,8 +70,8 @@ define(["./workbox-1ef09536"], function (e) {
           revision: "089e175e5cfe9e7e2a0a719196038fb9",
         },
         { url: "assets/workbox-window.prod.es5-Bq4GJJid.js", revision: null },
-        { url: "assets/index-CuuBu2Uo.css", revision: null },
-        { url: "assets/index-4L4RQw5g.js", revision: null },
+        { url: "assets/index-DzlSsHBG.css", revision: null },
+        { url: "assets/index-7anyfrqR.js", revision: null },
         {
           url: "manifest.webmanifest",
           revision: "472d9d354c8e34d3947636d64100d3a2",

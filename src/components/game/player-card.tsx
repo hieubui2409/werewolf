@@ -25,6 +25,7 @@ const HOVER_GLOW: Record<string, string> = {
 
 interface PlayerCardProps {
   player: Player;
+  displayNumber: number;
   role: GameRole | undefined;
   actions: ActionLog[];
   isFlipped: boolean;
@@ -159,6 +160,7 @@ function AbilityButton({
 
 export const PlayerCard = memo(function PlayerCard({
   player,
+  displayNumber,
   role,
   actions,
   isFlipped,
@@ -202,7 +204,7 @@ export const PlayerCard = memo(function PlayerCard({
           {!player.alive && <DeathWatermark />}
           <div className="flex justify-between items-center mb-2">
             <span className="bg-bg-elevated text-text-primary w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0">
-              {player.id}
+              {displayNumber}
             </span>
             <div
               className={`text-[11px] font-black uppercase tracking-widest truncate ml-2 text-center flex-1 ${col.text}`}
@@ -261,7 +263,7 @@ export const PlayerCard = memo(function PlayerCard({
       {!player.alive && <DeathWatermark />}
       <div className="flex justify-between items-start mb-2">
         <span className="w-7 h-7 rounded-full flex items-center justify-center font-black text-sm bg-bg-elevated text-text-primary">
-          {player.id}
+          {displayNumber}
         </span>
       </div>
       <div className="text-center mt-auto mb-auto">
@@ -294,7 +296,7 @@ export const PlayerCard = memo(function PlayerCard({
       {!player.alive && <DeathWatermark />}
       <div className="flex justify-between items-start">
         <span className="bg-bg-elevated text-text-secondary w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs">
-          {player.id}
+          {displayNumber}
         </span>
         <button
           onClick={(e) => onSelect(player.id, e)}
