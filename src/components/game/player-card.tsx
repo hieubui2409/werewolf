@@ -17,6 +17,12 @@ const FACTION_EMOJI: Record<string, string> = {
   third: "👁",
 };
 
+const HOVER_GLOW: Record<string, string> = {
+  villager: "hover:shadow-glow-villager",
+  wolf: "hover:shadow-glow-wolf",
+  third: "hover:shadow-glow-third",
+};
+
 interface PlayerCardProps {
   player: Player;
   role: GameRole | undefined;
@@ -182,7 +188,7 @@ export const PlayerCard = memo(function PlayerCard({
     return (
       <div className="w-full min-h-[170px] md:min-h-[180px] lg:min-h-[190px]">
         <div
-          className={`w-full h-full p-3 flex flex-col rounded-2xl relative border ${col.border} bg-bg-card shadow-card overflow-y-auto hide-scrollbar card-pattern-${faction} hover:${col.glow} transition-shadow ${deadClass} ${animClass}`}
+          className={`w-full h-full p-3 flex flex-col rounded-2xl relative border ${col.border} bg-bg-card shadow-card overflow-y-auto hide-scrollbar card-pattern-${faction} ${HOVER_GLOW[faction] ?? ""} transition-shadow ${deadClass} ${animClass}`}
           onAnimationEnd={handleAnimEnd}
         >
           {!player.alive && <DeathWatermark />}
@@ -193,12 +199,12 @@ export const PlayerCard = memo(function PlayerCard({
             <div
               className={`text-[11px] font-black uppercase tracking-widest truncate ml-2 text-right flex-1 ${col.text}`}
             >
-              {roleName}
+              {FACTION_EMOJI[faction]} {roleName}
             </div>
             <button
               onClick={(e) => onSelect(player.id, e)}
               className="text-text-muted hover:text-text-primary ml-2 p-1"
-              aria-label="Player options"
+              aria-label={t("common.playerOptions")}
             >
               <MoreVertical size={14} />
             </button>
@@ -264,7 +270,7 @@ export const PlayerCard = memo(function PlayerCard({
       <button
         onClick={(e) => onSelect(player.id, e)}
         className="absolute top-2 right-2 text-text-muted hover:text-text-primary p-2"
-        aria-label="Player options"
+        aria-label={t("common.playerOptions")}
       >
         <MoreVertical size={14} />
       </button>
@@ -284,7 +290,7 @@ export const PlayerCard = memo(function PlayerCard({
         <button
           onClick={(e) => onSelect(player.id, e)}
           className="text-text-muted hover:text-text-primary p-1 -mt-1"
-          aria-label="Player options"
+          aria-label={t("common.playerOptions")}
         >
           <MoreVertical size={14} />
         </button>
@@ -346,7 +352,7 @@ export const PlayerCard = memo(function PlayerCard({
       }}
     >
       <div
-        className={`flip-inner shadow-card rounded-xl hover:${col.glow} transition-shadow`}
+        className={`flip-inner shadow-card rounded-xl ${HOVER_GLOW[faction] ?? ""} transition-shadow`}
       >
         {nameFace}
         {roleFace}

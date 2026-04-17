@@ -20,6 +20,7 @@ export interface RoleTemplate {
   category: Category;
   faction: Faction;
   abilities: Ability[];
+  version?: number;
 }
 
 // Separate type — copy fields from template when creating
@@ -71,6 +72,7 @@ export interface TurnHistory {
 export interface TimerSettings {
   debate: number;
   judgment: number;
+  muted: boolean;
 }
 
 export interface GameState {

@@ -9,6 +9,7 @@ vi.mock("react-i18next", () => ({
     t: (key: string, fallback?: string) => fallback || key,
     i18n: { language: "vi", changeLanguage: vi.fn() },
   }),
+  initReactI18next: { type: "3rdParty", init: vi.fn() },
 }));
 
 describe("PlayerCard", () => {
@@ -208,7 +209,7 @@ describe("PlayerCard", () => {
 
     // In "both" mode, both name and role should be visible
     expect(screen.getByText("Alice")).toBeInTheDocument();
-    expect(screen.getByText("Sói")).toBeInTheDocument();
+    expect(screen.getByText(/Sói/)).toBeInTheDocument();
   });
 
   it("does not apply flipped class in 'both' mode", () => {
@@ -247,7 +248,7 @@ describe("PlayerCard", () => {
       />,
     );
 
-    const optionsButtons = screen.getAllByLabelText("Player options");
+    const optionsButtons = screen.getAllByLabelText("common.playerOptions");
     fireEvent.click(optionsButtons[0]);
 
     expect(mockOnSelect).toHaveBeenCalledWith(1, expect.any(Object));

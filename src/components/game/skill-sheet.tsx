@@ -1,8 +1,18 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Wand2, Moon, Crosshair, ArrowLeft, Skull } from "lucide-react";
+import {
+  Wand2,
+  Moon,
+  Crosshair,
+  ArrowLeft,
+  Skull,
+  AlertTriangle,
+} from "lucide-react";
 import { useGameStore } from "../../store/game-store";
-import { useSortedRoles } from "../../store/game-store-selectors";
+import {
+  useSortedRoles,
+  useCanExecute,
+} from "../../store/game-store-selectors";
 import { BottomSheet } from "../common/bottom-sheet";
 import { getFactionStyle } from "../../utils/faction-theme";
 import { tr } from "../../utils/i18n-helpers";
@@ -25,7 +35,15 @@ interface WizardState {
   roleId: string | null;
   sourceId: number | null;
   targets: number[];
-  possibleSources: { id: number; name: string }[];
+  possibleSources: { id: number; name: string; alive: boolean }[];
+}
+
+interface PendingConfirm {
+  sourceId: number;
+  sourceName: string;
+  ability: Ability;
+  targets: number[];
+  roleId: string;
 }
 
 const INITIAL_STATE: WizardState = {
@@ -46,23 +64,25 @@ export function SkillSheet({
   const sortedRoles = useSortedRoles();
   const players = useGameStore((s) => s.players);
   const executeAction = useGameStore((s) => s.executeAction);
+  const checkCanExecute = useCanExecute();
   const [wizard, setWizard] = useState<WizardState>(INITIAL_STATE);
   const [expandedRoleId, setExpandedRoleId] = useState<string | null>(null);
-  // C2: Use ref for players to break dependency loop in selectAbility
+  const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(
+    null,
+  );
   const playersRef = useRef(players);
   playersRef.current = players;
 
   const handleClose = useCallback(() => {
     setWizard(INITIAL_STATE);
     setExpandedRoleId(null);
+    setPendingConfirm(null);
     onClose();
   }, [onClose]);
 
-  // C2: selectAbility reads players from ref — stable callback, no player dep
+  // E6 FIX: Remove p.alive filter — let canExecute handle dead-source
   const selectAbility = useCallback((ability: Ability, roleId: string) => {
-    const capable = playersRef.current.filter(
-      (p) => p.roleId === roleId && p.alive,
-    );
+    const capable = playersRef.current.filter((p) => p.roleId === roleId);
     if (capable.length === 0) return;
     if (capable.length === 1) {
       setWizard({
@@ -80,12 +100,15 @@ export function SkillSheet({
         roleId,
         sourceId: null,
         targets: [],
-        possibleSources: capable,
+        possibleSources: capable.map((p) => ({
+          id: p.id,
+          name: p.name,
+          alive: p.alive,
+        })),
       });
     }
   }, []);
 
-  // C2: Auto-select only on open — stable deps prevent wizard reset
   const initialContextRef = useRef(initialContext);
   initialContextRef.current = initialContext;
   useEffect(() => {
@@ -115,24 +138,52 @@ export function SkillSheet({
     });
   };
 
-  const confirm = () => {
+  const doExecute = (targets: number[], force = false) => {
     if (!wizard.ability || wizard.sourceId === null || !wizard.roleId) return;
+
+    if (!force) {
+      const check = checkCanExecute(wizard.sourceId, wizard.ability);
+      if (!check.allowed && check.reason === "dead_source") {
+        const source = players.find((p) => p.id === wizard.sourceId);
+        setPendingConfirm({
+          sourceId: wizard.sourceId,
+          sourceName: source?.name ?? `#${wizard.sourceId}`,
+          ability: wizard.ability,
+          targets,
+          roleId: wizard.roleId,
+        });
+        return;
+      }
+    }
+
     executeAction(
       wizard.sourceId,
       wizard.ability,
-      wizard.targets,
+      targets,
       wizard.roleId,
+      force,
     );
     setWizard(INITIAL_STATE);
     setExpandedRoleId(null);
+    setPendingConfirm(null);
     onClose();
   };
 
-  const confirmNoTarget = () => {
-    if (!wizard.ability || wizard.sourceId === null || !wizard.roleId) return;
-    executeAction(wizard.sourceId, wizard.ability, [], wizard.roleId);
+  const confirm = () => doExecute(wizard.targets);
+  const confirmNoTarget = () => doExecute([]);
+
+  const confirmForce = () => {
+    if (!pendingConfirm) return;
+    executeAction(
+      pendingConfirm.sourceId,
+      pendingConfirm.ability,
+      pendingConfirm.targets,
+      pendingConfirm.roleId,
+      true,
+    );
     setWizard(INITIAL_STATE);
     setExpandedRoleId(null);
+    setPendingConfirm(null);
     onClose();
   };
 
@@ -144,8 +195,47 @@ export function SkillSheet({
       icon={<Wand2 size={20} />}
       fullHeight
     >
+      {/* Dead-source confirm dialog */}
+      {pendingConfirm && (
+        <div className="step-enter">
+          <div className="bg-amber-900/30 border border-amber-600/50 rounded-xl p-4 mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle size={18} className="text-amber-400" />
+              <span className="font-bold text-amber-300 text-sm">
+                {t("game.deadSourceWarning", "Nguồn đã chết")}
+              </span>
+            </div>
+            <p className="text-sm text-text-secondary mb-4">
+              {t("game.deadSourceConfirm", {
+                name: pendingConfirm.sourceName,
+                ability: tr(
+                  t,
+                  pendingConfirm.ability.nameKey,
+                  pendingConfirm.ability.name,
+                ),
+                defaultValue: `${pendingConfirm.sourceName} đã chết. Vẫn thực hiện ${tr(t, pendingConfirm.ability.nameKey, pendingConfirm.ability.name)}?`,
+              })}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setPendingConfirm(null)}
+                className="flex-1 py-2 bg-bg-elevated text-text-secondary font-bold rounded-xl transition active:scale-95"
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                onClick={confirmForce}
+                className="flex-1 py-2 bg-amber-600 text-white font-bold rounded-xl transition active:scale-95"
+              >
+                {t("common.confirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Step 1: Choose skill */}
-      {wizard.step === 1 && (
+      {!pendingConfirm && wizard.step === 1 && (
         <div className="space-y-2 step-enter">
           {sortedRoles.map((role) => {
             if (role.abilities.length === 0) return null;
@@ -172,7 +262,7 @@ export function SkillSheet({
                           key={p.id}
                           className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${
                             !p.alive
-                              ? "line-through bg-slate-700/50 text-text-muted"
+                              ? "line-through bg-bg-elevated/50 text-text-muted"
                               : "bg-bg-overlay text-text-secondary"
                           }`}
                         >
@@ -231,7 +321,7 @@ export function SkillSheet({
       )}
 
       {/* Step 2: Choose source */}
-      {wizard.step === 2 && (
+      {!pendingConfirm && wizard.step === 2 && (
         <div className="step-enter">
           <button
             onClick={() => setWizard(INITIAL_STATE)}
@@ -247,8 +337,11 @@ export function SkillSheet({
               <button
                 key={p.id}
                 onClick={() => selectSource(p.id)}
-                className="py-3 bg-bg-card border border-border-default rounded-xl font-bold text-sm text-center transition active:scale-95 text-text-primary"
+                className={`py-3 bg-bg-card border border-border-default rounded-xl font-bold text-sm text-center transition active:scale-95 ${!p.alive ? "text-text-muted italic" : "text-text-primary"}`}
               >
+                {!p.alive && (
+                  <Skull size={10} className="inline mr-1 text-red-500" />
+                )}
                 {p.name}
               </button>
             ))}
@@ -257,7 +350,7 @@ export function SkillSheet({
       )}
 
       {/* Step 3: Choose targets */}
-      {wizard.step === 3 && wizard.ability && (
+      {!pendingConfirm && wizard.step === 3 && wizard.ability && (
         <div className="flex flex-col flex-1 step-enter">
           <button
             onClick={() =>

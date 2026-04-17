@@ -45,9 +45,20 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
     if (abilities.length > MAX_ABILITIES_PER_ROLE)
       errs.push(t("setup.errorMaxAbilities", "Tối đa 5 kỹ năng"));
     abilities.forEach((ab, i) => {
-      if (!ab.name.trim()) errs.push(`Kỹ năng ${i + 1}: tên trống`);
+      if (!ab.name.trim())
+        errs.push(
+          t("setup.errorAbilityNameEmpty", {
+            index: i + 1,
+            defaultValue: `Kỹ năng ${i + 1}: tên trống`,
+          }),
+        );
       if (ab.targetCount > playerCount)
-        errs.push(`Kỹ năng ${i + 1}: target > số người chơi`);
+        errs.push(
+          t("setup.errorAbilityTargetExceed", {
+            index: i + 1,
+            defaultValue: `Kỹ năng ${i + 1}: target > số người chơi`,
+          }),
+        );
     });
     return errs;
   };
@@ -166,7 +177,7 @@ export function CreateRoleSheet({ isOpen, onClose }: CreateRoleSheetProps) {
               className="bg-bg-elevated rounded-lg p-3 border border-border-default"
             >
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-[10px] font-bold text-gray-400 w-4">
+                <span className="text-[10px] font-bold text-text-muted w-4">
                   {i + 1}
                 </span>
                 <input

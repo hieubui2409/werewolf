@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react";
+import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 
 interface BottomSheetProps {
@@ -25,10 +32,26 @@ export function BottomSheet({
   showDragHandle = true,
   children,
 }: BottomSheetProps) {
+  const { t } = useTranslation();
   const sheetRef = useRef<HTMLDivElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  const [closing, setClosing] = useState(false);
+
+  const triggerClose = useCallback(() => setClosing(true), []);
+
+  // Native listener — React's synthetic onAnimationEnd doesn't fire in JSDOM
+  useEffect(() => {
+    const sheet = sheetRef.current;
+    if (!sheet || !closing) return;
+    const handler = () => {
+      setClosing(false);
+      onCloseRef.current();
+    };
+    sheet.addEventListener("animationend", handler, { once: true });
+    return () => sheet.removeEventListener("animationend", handler);
+  }, [closing]);
 
   // Swipe-to-dismiss state
   const [dragY, setDragY] = useState(0);
@@ -47,7 +70,7 @@ export function BottomSheet({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onCloseRef.current();
+        setClosing(true);
         return;
       }
       if (e.key === "Tab" && sheetRef.current) {
@@ -137,7 +160,7 @@ export function BottomSheet({
     const velocity = dragY / elapsed;
 
     if (dragY > DISMISS_THRESHOLD || velocity > VELOCITY_THRESHOLD) {
-      onCloseRef.current();
+      triggerClose();
     }
 
     setDragY(0);
@@ -150,7 +173,7 @@ export function BottomSheet({
   return (
     <div
       className="fixed inset-0 z-[80] bg-black/85 flex flex-col justify-end backdrop-blur-sm md:items-center"
-      onClick={() => onCloseRef.current()}
+      onClick={triggerClose}
       aria-hidden="true"
     >
       <div
@@ -158,7 +181,7 @@ export function BottomSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? "sheet-title" : undefined}
-        className={`bg-bg-surface rounded-t-[2rem] md:rounded-2xl p-5 border-t border-border-default shadow-sheet modal-enter flex flex-col w-full md:max-w-[640px] ${fullHeight ? "h-[90vh]" : "max-h-[85vh]"} md:mb-8 ${isDragging ? "sheet-dragging" : ""}`}
+        className={`bg-bg-surface rounded-t-[2rem] md:rounded-2xl p-5 border-t border-border-default shadow-sheet flex flex-col w-full md:max-w-[640px] ${fullHeight ? "h-[90vh]" : "max-h-[85vh]"} md:mb-8 ${isDragging ? "sheet-dragging" : ""} ${closing ? "sheet-exit" : "modal-enter"}`}
         style={isDragging ? { transform: `translateY(${dragY}px)` } : undefined}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={handleTouchStart}
@@ -184,9 +207,9 @@ export function BottomSheet({
             </h3>
           )}
           <button
-            onClick={() => onCloseRef.current()}
+            onClick={triggerClose}
             className="w-10 h-10 rounded-full bg-bg-elevated text-text-muted flex items-center justify-center hover:bg-bg-overlay transition"
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             <X size={20} />
           </button>

@@ -66,6 +66,7 @@ src/
 │   ├── game-store.ts                # Zustand store: state + persist middleware
 │   ├── game-store-actions.ts        # Mutable state actions
 │   ├── game-store-selectors.ts      # Memoized selectors (prevent re-renders)
+│   ├── game-store-undo-history.ts   # Undo/redo history stack (pure functions, max 20 entries)
 │   └── __tests__/
 │       ├── game-store.test.ts
 │       └── game-store-actions.test.ts
@@ -75,7 +76,7 @@ src/
 │   └── default-roles.ts             # 28 built-in role templates (V17 + V21 merged)
 ├── utils/
 │   ├── faction-theme.ts             # Faction color & styling utility (Tailwind classes + SVG patterns)
-│   ├── sounds.ts                    # Audio playback helpers
+│   ├── sounds.ts                    # Audio playback + mute sync (initMuteSync subscribes to Zustand mute state)
 │   ├── uid.ts                       # Unique ID generation
 │   └── i18n-helpers.ts              # i18n utility functions
 ├── hooks/
@@ -256,6 +257,25 @@ export const useActivePlayer = () =>
 - **Action chip animations:** 0.2s enter stagger for player action options
 
 All animations respect `prefers-reduced-motion` for accessibility.
+
+### Keyboard Shortcuts
+
+**Game Screen Shortcuts:**
+
+| Key              | Action                      | Context                  |
+| ---------------- | --------------------------- | ------------------------ |
+| **D**            | Start debate timer          | Game screen (no UI open) |
+| **J**            | Start judgment timer        | Game screen (no UI open) |
+| **N**            | Toggle night modal          | Game screen              |
+| **H**            | Toggle history modal        | Game screen              |
+| **S**            | Toggle settings modal       | Game screen              |
+| **Escape**       | Close top UI element        | Any modal/sheet          |
+| **Ctrl+Z**       | Undo last action            | Game screen              |
+| **Ctrl+Shift+Z** | Redo action                 | Game screen              |
+| **Tab**          | Navigate focusable elements | Modal (focus trap)       |
+| **Shift+Tab**    | Navigate backward           | Modal (focus trap)       |
+
+**Implementation:** Keyboard handlers in `game-screen.tsx` (Ctrl±Z undo/redo) and `bottom-sheet.tsx` (Tab focus trap, Escape close).
 
 ### Error Handling
 

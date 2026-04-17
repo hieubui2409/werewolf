@@ -1,6 +1,7 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useCallback } from "react";
 import { useGameStore } from "./game-store";
-import type { GameRole, ActionLog } from "../types/game";
+import { canExecute as checkCanExecute } from "./game-store-actions";
+import type { GameRole, ActionLog, Ability } from "../types/game";
 
 /** O(1) role lookup by role ID */
 export function useRoleMap() {
@@ -46,6 +47,16 @@ export function usePlayerActionMap() {
     prevMapRef.current = result;
     return result;
   }, [actionLog]);
+}
+
+/** Pre-check if source can execute ability (dead_source, usage limits) */
+export function useCanExecute() {
+  const players = useGameStore((s) => s.players);
+  return useCallback(
+    (sourceId: number, ability: Ability) =>
+      checkCanExecute(players, sourceId, ability),
+    [players],
+  );
 }
 
 /** Roles sorted by night order */

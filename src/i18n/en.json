@@ -7,7 +7,28 @@
     "startGame": "START GAME",
     "createCustomRole": "CREATE CUSTOM ROLE",
     "confirmDeleteRole": "Delete role {{name}}? Assigned players will lose their role.",
-    "noTarget": "0"
+    "noTarget": "0",
+    "willBeVillager": "Will be Villager",
+    "nightly": "Nightly",
+    "limited": "Limited",
+    "addAbility": "Add Ability",
+    "noRoles": "No roles added",
+    "errorNameRequired": "Role name required",
+    "errorDuplicateName": "Duplicate name",
+    "errorNeedAbility": "Need at least 1 ability",
+    "errorMaxAbilities": "Max abilities reached",
+    "errorAbilityNameEmpty": "Ability {{index}}: name empty",
+    "errorAbilityTargetExceed": "Ability {{index}}: target > player count",
+    "roleName": "Role name",
+    "roleNamePlaceholder": "Enter name...",
+    "faction": "Faction",
+    "abilities": "Abilities",
+    "abilityNamePlaceholder": "Ability name",
+    "nightOrder": "Night order",
+    "targetCount": "Target count",
+    "usageLimit": "Usage limit",
+    "skillType": "Skill type",
+    "defaultAbilityName": "Ability"
   },
   "game": {
     "assignRole": "Assign Role",
@@ -29,7 +50,15 @@
     "revive": "Revive",
     "chooseSource": "Choose performer",
     "skip": "Skip",
-    "noAbility": "No abilities"
+    "noAbility": "No abilities",
+    "actions": "Actions",
+    "undo": "Undo",
+    "redo": "Redo",
+    "deadSourceWarning": "Dead source",
+    "deadSourceConfirm": "{{name}} is dead. Still perform {{ability}}?",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "tapToSkip": "Tap to skip"
   },
   "roles": {
     "b_wolf": "Werewolf",
@@ -150,7 +179,6 @@
     "actions": "actions"
   },
   "pwa": {
-    "updatePrompt": "New update available. Reload?",
     "newMoon": "A new moon rises...",
     "updateAvailable": "Update available!",
     "updateNow": "Update Now",
@@ -177,7 +205,8 @@
     "theme": "Theme",
     "dark": "Dark",
     "light": "Light",
-    "language": "Language"
+    "language": "Language",
+    "muteSounds": "Mute sounds"
   },
   "common": {
     "confirm": "Confirm",
@@ -185,6 +214,13 @@
     "close": "Close",
     "save": "Save",
     "delete": "Delete",
-    "back": "Back"
+    "back": "Back",
+    "systemError": "System Error",
+    "errorOccurred": "An error occurred. Please reload the page.",
+    "reloadPage": "RELOAD PAGE",
+    "resume": "Resume",
+    "pause": "Pause",
+    "stop": "Stop",
+    "playerOptions": "Player options"
   }
 }

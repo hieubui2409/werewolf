@@ -168,6 +168,46 @@ export function changeRoleOrder(
   return sorted.map((r, i) => ({ ...r, order: i + 1 }));
 }
 
+// ===== Execution Validation =====
+export interface ExecutionCheck {
+  allowed: boolean;
+  reason?: "dead_source" | "already_used_night" | "limit_reached";
+}
+
+/**
+ * Single validation for both canExecute (UI pre-check) and executeAction.
+ * force=true: skip dead_source only. Usage limits always enforced.
+ */
+export function validateExecution(
+  players: Player[],
+  sourceId: number,
+  ability: Ability,
+  force = false,
+): ExecutionCheck {
+  const source = players.find((p) => p.id === sourceId);
+  if (!source) return { allowed: false };
+  if (!source.alive && !force) return { allowed: false, reason: "dead_source" };
+  if (ability.type === "limited" || ability.type === "nightly") {
+    const used = source.abilityUsage[ability.id] || 0;
+    const max = ability.type === "nightly" ? 1 : ability.max;
+    if (used >= max)
+      return {
+        allowed: false,
+        reason:
+          ability.type === "nightly" ? "already_used_night" : "limit_reached",
+      };
+  }
+  return { allowed: true };
+}
+
+export function canExecute(
+  players: Player[],
+  sourceId: number,
+  ability: Ability,
+): ExecutionCheck {
+  return validateExecution(players, sourceId, ability, false);
+}
+
 // ===== Game Actions =====
 export function executeAction(
   players: Player[],
@@ -177,33 +217,16 @@ export function executeAction(
   targets: number[],
   faction: Faction,
   nightCount: number,
+  force = false,
 ): {
   players: Player[];
   actionLog: ActionLog[];
   blocked?: boolean;
   reason?: string;
 } {
-  const source = players.find((p) => p.id === sourceId);
-  if (!source) return { players, actionLog };
-
-  // H5: Dead source check — return blocked status for UI to handle
-  if (!source.alive) {
-    return { players, actionLog, blocked: true, reason: "dead_source" };
-  }
-
-  // Validate limited/nightly ability usage
-  if (ability.type === "limited" || ability.type === "nightly") {
-    const currentCount = source.abilityUsage[ability.id] || 0;
-    const maxUses = ability.type === "nightly" ? 1 : ability.max;
-    if (currentCount >= maxUses) {
-      return {
-        players,
-        actionLog,
-        blocked: true,
-        reason:
-          ability.type === "nightly" ? "already_used_night" : "limit_reached",
-      };
-    }
+  const check = validateExecution(players, sourceId, ability, force);
+  if (!check.allowed) {
+    return { players, actionLog, blocked: true, reason: check.reason };
   }
 
   const newPlayers = players.map((p) => {
@@ -293,6 +316,34 @@ export function undoAction(
     players: newPlayers,
     actionLog: actionLog.filter((a) => !groupIds.has(a.id)),
   };
+}
+
+// ===== Template Merge =====
+export function mergeRoleTemplates(
+  persisted: RoleTemplate[] | undefined,
+  defaults: RoleTemplate[],
+): RoleTemplate[] {
+  if (!persisted || !Array.isArray(persisted)) return [...defaults];
+
+  const persistedMap = new Map(persisted.map((t) => [t.id, t]));
+  const merged: RoleTemplate[] = [];
+
+  for (const def of defaults) {
+    const saved = persistedMap.get(def.id);
+    if (saved && (saved.version ?? 0) >= (def.version ?? 0)) {
+      merged.push(saved);
+    } else {
+      merged.push(def);
+    }
+    persistedMap.delete(def.id);
+  }
+
+  // Keep custom templates
+  for (const custom of persistedMap.values()) {
+    merged.push(custom);
+  }
+
+  return merged;
 }
 
 // ===== UI Actions =====

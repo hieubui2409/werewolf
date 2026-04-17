@@ -7,8 +7,20 @@ const SOUND_MAP: Record<SoundName, string> = {
 };
 
 const audioCache: Record<string, HTMLAudioElement> = {};
+let preloaded = false;
+let globalMuted = false;
+
+export function initMuteSync(
+  subscribe: (cb: (muted: boolean) => void) => () => void,
+): void {
+  subscribe((muted) => {
+    globalMuted = muted;
+  });
+}
 
 export function preloadSounds(): void {
+  if (preloaded) return;
+  preloaded = true;
   Object.entries(SOUND_MAP).forEach(([key, src]) => {
     const audio = new Audio(src);
     audio.preload = "auto";
@@ -22,6 +34,7 @@ export function preloadSounds(): void {
 }
 
 export function playSound(name: SoundName): void {
+  if (globalMuted) return;
   try {
     const audio = audioCache[name] || new Audio(SOUND_MAP[name]);
     audio.currentTime = 0;

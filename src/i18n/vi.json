@@ -7,7 +7,28 @@
     "startGame": "BẮT ĐẦU GAME",
     "createCustomRole": "TẠO ROLE TÙY CHỈNH",
     "confirmDeleteRole": "Xóa vai {{name}}? Các người chơi đã gán sẽ mất vai.",
-    "noTarget": "0"
+    "noTarget": "0",
+    "willBeVillager": "Sẽ là Dân Làng",
+    "nightly": "Đêm",
+    "limited": "Giới hạn",
+    "addAbility": "Thêm kỹ năng",
+    "noRoles": "Chưa có vai trò",
+    "errorNameRequired": "Tên vai trò bắt buộc",
+    "errorDuplicateName": "Tên đã tồn tại",
+    "errorNeedAbility": "Cần ít nhất 1 kỹ năng",
+    "errorMaxAbilities": "Đã đạt tối đa",
+    "errorAbilityNameEmpty": "Kỹ năng {{index}}: tên trống",
+    "errorAbilityTargetExceed": "Kỹ năng {{index}}: target > số người chơi",
+    "roleName": "Tên vai trò",
+    "roleNamePlaceholder": "Nhập tên...",
+    "faction": "Phe",
+    "abilities": "Kỹ năng",
+    "abilityNamePlaceholder": "Tên kỹ năng",
+    "nightOrder": "Thứ tự đêm",
+    "targetCount": "Số mục tiêu",
+    "usageLimit": "Giới hạn sử dụng",
+    "skillType": "Loại kỹ năng",
+    "defaultAbilityName": "Kỹ năng"
   },
   "game": {
     "assignRole": "Gán Role",
@@ -29,7 +50,15 @@
     "revive": "Hồi sinh",
     "chooseSource": "Chọn người thực hiện",
     "skip": "Bỏ qua",
-    "noAbility": "Không kỹ năng"
+    "noAbility": "Không kỹ năng",
+    "actions": "Hành động",
+    "undo": "Hoàn tác",
+    "redo": "Làm lại",
+    "deadSourceWarning": "Nguồn đã chết",
+    "deadSourceConfirm": "{{name}} đã chết. Vẫn thực hiện {{ability}}?",
+    "mute": "Tắt tiếng",
+    "unmute": "Bật tiếng",
+    "tapToSkip": "Chạm để bỏ qua"
   },
   "roles": {
     "b_wolf": "Ma Sói",
@@ -150,7 +179,6 @@
     "actions": "hành động"
   },
   "pwa": {
-    "updatePrompt": "Có bản cập nhật mới. Tải lại?",
     "newMoon": "Trăng mới mọc...",
     "updateAvailable": "Bản cập nhật mới đã sẵn sàng!",
     "updateNow": "Cập nhật ngay",
@@ -177,7 +205,8 @@
     "theme": "Giao diện",
     "dark": "Tối",
     "light": "Sáng",
-    "language": "Ngôn ngữ"
+    "language": "Ngôn ngữ",
+    "muteSounds": "Tắt âm thanh"
   },
   "common": {
     "confirm": "Xác nhận",
@@ -185,6 +214,13 @@
     "close": "Đóng",
     "save": "Lưu",
     "delete": "Xoá",
-    "back": "Quay lại"
+    "back": "Quay lại",
+    "systemError": "Lỗi Hệ Thống",
+    "errorOccurred": "Đã xảy ra lỗi. Vui lòng tải lại trang.",
+    "reloadPage": "TẢI LẠI TRANG",
+    "resume": "Tiếp tục",
+    "pause": "Tạm dừng",
+    "stop": "Dừng",
+    "playerOptions": "Tùy chọn người chơi"
   }
 }

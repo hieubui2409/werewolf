@@ -674,10 +674,11 @@ describe("game-store: Zustand Store Integration", () => {
   describe("setTimerSettings", () => {
     it("updates timer settings", () => {
       const state = useGameStore.getState();
-      state.setTimerSettings({ debate: 180, judgment: 60 });
+      state.setTimerSettings({ debate: 180, judgment: 60, muted: false });
       expect(useGameStore.getState().timerSettings).toEqual({
         debate: 180,
         judgment: 60,
+        muted: false,
       });
     });
   });
@@ -719,9 +720,13 @@ describe("game-store: Zustand Store Integration", () => {
 
     it("persists timerSettings through setTimerSettings", () => {
       const state = useGameStore.getState();
-      state.setTimerSettings({ debate: 200, judgment: 50 });
+      state.setTimerSettings({ debate: 200, judgment: 50, muted: false });
       const newState = useGameStore.getState();
-      expect(newState.timerSettings).toEqual({ debate: 200, judgment: 50 });
+      expect(newState.timerSettings).toEqual({
+        debate: 200,
+        judgment: 50,
+        muted: false,
+      });
     });
 
     it("does not include flippedCards in partialize config", () => {

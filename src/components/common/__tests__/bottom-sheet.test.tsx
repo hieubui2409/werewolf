@@ -8,6 +8,7 @@ vi.mock("react-i18next", () => ({
     t: (key: string, fallback?: string) => fallback || key,
     i18n: { language: "vi", changeLanguage: vi.fn() },
   }),
+  initReactI18next: { type: "3rdParty", init: vi.fn() },
 }));
 
 describe("BottomSheet", () => {
@@ -39,30 +40,39 @@ describe("BottomSheet", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("calls onClose when overlay is clicked", async () => {
+  it("triggers exit animation on overlay click, calls onClose on animation end", () => {
     const { container } = render(
       <BottomSheet isOpen={true} onClose={mockOnClose}>
         <div>Content</div>
       </BottomSheet>,
     );
 
-    // Click the overlay background (the outer div with aria-hidden="true")
     const overlay = container.querySelector("div[aria-hidden='true']");
     if (overlay && overlay instanceof HTMLElement) {
       fireEvent.click(overlay);
     }
 
+    const dialog = container.querySelector('[role="dialog"]')!;
+    expect(dialog.className).toContain("sheet-exit");
+
+    dialog.dispatchEvent(new Event("animationend", { bubbles: true }));
+
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it("calls onClose when Escape key is pressed", async () => {
-    render(
+  it("triggers exit animation on Escape, calls onClose on animation end", () => {
+    const { container } = render(
       <BottomSheet isOpen={true} onClose={mockOnClose}>
         <button>Focus me</button>
       </BottomSheet>,
     );
 
     fireEvent.keyDown(document, { key: "Escape", code: "Escape" });
+
+    const dialog = container.querySelector('[role="dialog"]')!;
+    expect(dialog.className).toContain("sheet-exit");
+
+    dialog.dispatchEvent(new Event("animationend", { bubbles: true }));
 
     expect(mockOnClose).toHaveBeenCalled();
   });
@@ -80,15 +90,20 @@ describe("BottomSheet", () => {
     expect(mockOnClose).not.toHaveBeenCalled();
   });
 
-  it("calls onClose when close button is clicked", async () => {
-    render(
+  it("triggers exit animation on close button click, calls onClose on animation end", () => {
+    const { container } = render(
       <BottomSheet isOpen={true} onClose={mockOnClose}>
         <div>Content</div>
       </BottomSheet>,
     );
 
-    const closeButton = screen.getByLabelText("Close");
+    const closeButton = screen.getByLabelText("common.close");
     fireEvent.click(closeButton);
+
+    const dialog = container.querySelector('[role="dialog"]')!;
+    expect(dialog.className).toContain("sheet-exit");
+
+    dialog.dispatchEvent(new Event("animationend", { bubbles: true }));
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });

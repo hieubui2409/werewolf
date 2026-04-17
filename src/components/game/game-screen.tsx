@@ -41,10 +41,17 @@ export function GameScreen() {
   const flippedCards = useGameStore((s) => s.flippedCards);
   const flipCard = useGameStore((s) => s.flipCard);
   const undoAction = useGameStore((s) => s.undoAction);
+  const redoAction = useGameStore((s) => s.redoAction);
+  const actionLog = useGameStore((s) => s.actionLog);
+  const redoStack = useGameStore((s) => s.redoStack);
 
   const sortedPlayers = useSortedPlayers();
   const roleMap = useRoleMap();
   const actionMap = usePlayerActionMap();
+
+  const timerStartRef = useRef<
+    ((seconds: number, type: "debate" | "judgment") => void) | null
+  >(null);
 
   const [modal, setModal] = useState<ModalType>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
@@ -125,6 +132,20 @@ export function GameScreen() {
       }
       if (isTypingContext(e)) return;
 
+      // Ctrl+Z / Ctrl+Shift+Z undo/redo
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          if (redoStack.length > 0) redoAction();
+        } else {
+          if (actionLog.length > 0) {
+            const lastAction = actionLog[actionLog.length - 1];
+            undoAction(lastAction.id);
+          }
+        }
+        return;
+      }
+
       switch (e.key.toLowerCase()) {
         case "n":
           if (!modal) setModal("night");
@@ -135,11 +156,27 @@ export function GameScreen() {
         case "s":
           setModal((prev) => (prev === "settings" ? null : "settings"));
           break;
+        case "d":
+          if (!modal) timerStartRef.current?.(timerSettings.debate, "debate");
+          break;
+        case "j":
+          if (!modal)
+            timerStartRef.current?.(timerSettings.judgment, "judgment");
+          break;
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [modal, selectedPlayer, fabOpen]);
+  }, [
+    modal,
+    selectedPlayer,
+    fabOpen,
+    actionLog,
+    redoStack,
+    undoAction,
+    redoAction,
+    timerSettings,
+  ]);
 
   // ANIM6: Show overlay after night confirm
   const handleNightOverlayComplete = useCallback(
@@ -167,6 +204,7 @@ export function GameScreen() {
         onOpenModal={openModal}
         onOpenAssign={openAssign}
         onOpenSkill={openSkillFresh}
+        timerStartRef={timerStartRef}
       />
 
       {/* Main player grid */}

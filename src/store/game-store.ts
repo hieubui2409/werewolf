@@ -13,6 +13,7 @@ import type {
 } from "../types/game";
 import { DEFAULT_ROLES } from "../data/default-roles";
 import { uid } from "../utils/uid";
+import i18n from "../i18n";
 import {
   createInitialPlayers,
   createInitialRoles,
@@ -23,7 +24,9 @@ import {
   changeRoleOrder as calcChangeOrder,
   executeAction as calcExecuteAction,
   undoAction as calcUndoAction,
+  mergeRoleTemplates,
 } from "./game-store-actions";
+import { type UndoEntry, pushUndo, popUndo } from "./game-store-undo-history";
 
 interface GameStore {
   step: "setup" | "game";
@@ -48,6 +51,7 @@ interface GameStore {
   timerSettings: TimerSettings;
   cardViewMode: CardViewMode;
   flippedCards: Record<number, boolean>;
+  redoStack: UndoEntry[];
 
   setStep: (step: "setup" | "game") => void;
   handlePlayerCountChange: (newCount: number) => void;
@@ -76,14 +80,34 @@ interface GameStore {
     ability: Ability,
     targets: number[],
     roleId: string,
+    force?: boolean,
   ) => void;
   undoAction: (actionId: string) => void;
+  redoAction: () => void;
   nextNight: () => void;
   resetGame: () => void;
   flipCard: (id: number) => void;
   setCardViewMode: (mode: CardViewMode) => void;
   setTimerSettings: (settings: TimerSettings) => void;
   deleteCustomTemplate: (templateId: string) => void;
+}
+
+function getInitialState(): Partial<GameStore> {
+  return {
+    step: "setup",
+    playerCount: 10,
+    players: createInitialPlayers(10),
+    roleTemplates: [...DEFAULT_ROLES],
+    roles: createInitialRoles(),
+    actionLog: [],
+    statusChangeLog: [],
+    roleChangeLog: [],
+    gameHistory: [],
+    nightCount: 1,
+    timerSettings: { debate: 120, judgment: 30, muted: false },
+    cardViewMode: "nameFirst",
+    flippedCards: {},
+  };
 }
 
 export const useGameStore = create<GameStore>()(
@@ -99,9 +123,10 @@ export const useGameStore = create<GameStore>()(
       roleChangeLog: [],
       gameHistory: [],
       nightCount: 1,
-      timerSettings: { debate: 120, judgment: 30 },
+      timerSettings: { debate: 120, judgment: 30, muted: false },
       cardViewMode: "nameFirst",
       flippedCards: {},
+      redoStack: [],
 
       setStep: (step) => set({ step }),
 
@@ -193,7 +218,7 @@ export const useGameStore = create<GameStore>()(
                     ...r.abilities,
                     {
                       id: `ab_${uid()}`,
-                      name: "Ability",
+                      name: i18n.t("setup.defaultAbilityName", "Ability"),
                       type: "nightly" as const,
                       max: 1,
                       targetCount: 1,
@@ -267,7 +292,7 @@ export const useGameStore = create<GameStore>()(
           };
         }),
 
-      executeAction: (sourceId, ability, targets, roleId) =>
+      executeAction: (sourceId, ability, targets, roleId, force = false) =>
         set((s) => {
           const role = s.roles.find((r) => r.id === roleId);
           const faction = role?.faction ?? "villager";
@@ -279,13 +304,69 @@ export const useGameStore = create<GameStore>()(
             targets,
             faction,
             s.nightCount,
+            force,
           );
           if (result.blocked) return s;
-          return { players: result.players, actionLog: result.actionLog };
+          return {
+            players: result.players,
+            actionLog: result.actionLog,
+            redoStack: [],
+          };
         }),
 
       undoAction: (actionId) =>
-        set((s) => calcUndoAction(s.players, s.actionLog, actionId)),
+        set((s) => {
+          const targetAction = s.actionLog.find((a) => a.id === actionId);
+          if (!targetAction) return s;
+          const removedActions = s.actionLog.filter(
+            (a) => a.executionId === targetAction.executionId,
+          );
+          if (removedActions.length === 0) return s;
+
+          const result = calcUndoAction(s.players, s.actionLog, actionId);
+          if (result.players === s.players) return s;
+
+          const usageDecrements: Record<number, Record<string, number>> = {};
+          const src = targetAction.sourceId;
+          if (!usageDecrements[src]) usageDecrements[src] = {};
+          usageDecrements[src][targetAction.abilityId] = 1;
+
+          const redoEntry: UndoEntry = {
+            type: "action_undo",
+            actionId,
+            executionId: targetAction.executionId,
+            removedActions,
+            usageDecrements,
+          };
+
+          return {
+            ...result,
+            redoStack: pushUndo(s.redoStack, redoEntry),
+          };
+        }),
+
+      redoAction: () =>
+        set((s) => {
+          const { entry, remaining } = popUndo(s.redoStack);
+          if (!entry) return s;
+
+          const newActionLog = [...s.actionLog, ...entry.removedActions];
+          const newPlayers = s.players.map((p) => {
+            const decrements = entry.usageDecrements[p.id];
+            if (!decrements) return p;
+            const newUsage = { ...p.abilityUsage };
+            for (const [abilityId, count] of Object.entries(decrements)) {
+              newUsage[abilityId] = (newUsage[abilityId] ?? 0) + count;
+            }
+            return { ...p, abilityUsage: newUsage };
+          });
+
+          return {
+            actionLog: newActionLog,
+            players: newPlayers,
+            redoStack: remaining,
+          };
+        }),
 
       nextNight: () =>
         set((s) => {
@@ -305,9 +386,11 @@ export const useGameStore = create<GameStore>()(
             if (!p.roleId) return p;
             const role = roleById.get(p.roleId);
             if (!role) return p;
-            const newUsage = { ...p.abilityUsage };
+            // BUG-03: Rebuild from scratch to remove stale keys
+            const newUsage: Record<string, number> = {};
             for (const ab of role.abilities) {
-              if (ab.type === "nightly") newUsage[ab.id] = 0;
+              newUsage[ab.id] =
+                ab.type === "nightly" ? 0 : (p.abilityUsage[ab.id] ?? 0);
             }
             return { ...p, abilityUsage: newUsage };
           });
@@ -318,6 +401,7 @@ export const useGameStore = create<GameStore>()(
             statusChangeLog: [],
             roleChangeLog: [],
             players: newPlayers,
+            redoStack: [],
           };
         }),
 
@@ -329,6 +413,8 @@ export const useGameStore = create<GameStore>()(
           roleChangeLog: [],
           gameHistory: [],
           nightCount: 1,
+          undoStack: [],
+          redoStack: [],
           players: s.players.map((p) => ({
             ...p,
             roleId: null,
@@ -352,67 +438,101 @@ export const useGameStore = create<GameStore>()(
       setCardViewMode: (mode) => set({ cardViewMode: mode }),
       setTimerSettings: (settings) => set({ timerSettings: settings }),
       deleteCustomTemplate: (templateId) =>
-        set((s) => ({
-          roleTemplates: s.roleTemplates.filter((t) => t.id !== templateId),
-        })),
+        set((s) => {
+          const orphanRoleIds = s.roles
+            .filter((r) => r.templateId === templateId)
+            .map((r) => r.id);
+          const orphanSet = new Set(orphanRoleIds);
+          return {
+            roleTemplates: s.roleTemplates.filter((t) => t.id !== templateId),
+            roles: s.roles.filter((r) => r.templateId !== templateId),
+            players: s.players.map((p) =>
+              p.roleId && orphanSet.has(p.roleId) ? { ...p, roleId: null } : p,
+            ),
+            roleChangeLog: s.roleChangeLog.filter(
+              (l) =>
+                !orphanSet.has(l.fromRoleId ?? "") &&
+                !orphanSet.has(l.toRoleId ?? ""),
+            ),
+          };
+        }),
     }),
     {
       name: "werewolf-game",
       storage: createJSONStorage(() => localStorage),
-      version: 1,
+      version: 2,
       migrate: (persisted: unknown, version: number) => {
-        const state = persisted as Record<string, unknown>;
-        if (version === 0 || version === undefined) {
-          // v0→v1: convert numeric executionId → string
-          const actionLog = state.actionLog as
-            | Array<Record<string, unknown>>
-            | undefined;
-          actionLog?.forEach((entry) => {
-            if (typeof entry.executionId === "number") {
-              entry.executionId = String(entry.executionId);
-            }
-          });
-          const gameHistory = state.gameHistory as
-            | Array<Record<string, unknown>>
-            | undefined;
-          gameHistory?.forEach((turn) => {
-            const logs = turn.actionLogs as
+        try {
+          const state = persisted as Record<string, unknown>;
+          if (!state || typeof state !== "object") return getInitialState();
+          if (!Array.isArray(state.players)) return getInitialState();
+          if (typeof state.nightCount !== "number") return getInitialState();
+
+          if (version === 0 || version === undefined) {
+            // v0→v1: convert numeric executionId → string
+            const actionLog = state.actionLog as
               | Array<Record<string, unknown>>
               | undefined;
-            logs?.forEach((entry) => {
+            actionLog?.forEach((entry) => {
               if (typeof entry.executionId === "number") {
                 entry.executionId = String(entry.executionId);
               }
             });
-          });
-          // v0→v1: backfill missing timestamps
-          const now = Date.now();
-          const statusLog = state.statusChangeLog as
-            | Array<Record<string, unknown>>
-            | undefined;
-          statusLog?.forEach((e) => {
-            if (e.timestamp == null) e.timestamp = now;
-          });
-          const roleLog = state.roleChangeLog as
-            | Array<Record<string, unknown>>
-            | undefined;
-          roleLog?.forEach((e) => {
-            if (e.timestamp == null) e.timestamp = now;
-          });
+            const gameHistory = state.gameHistory as
+              | Array<Record<string, unknown>>
+              | undefined;
+            gameHistory?.forEach((turn) => {
+              const logs = turn.actionLogs as
+                | Array<Record<string, unknown>>
+                | undefined;
+              logs?.forEach((entry) => {
+                if (typeof entry.executionId === "number") {
+                  entry.executionId = String(entry.executionId);
+                }
+              });
+            });
+            const now = Date.now();
+            const statusLog = state.statusChangeLog as
+              | Array<Record<string, unknown>>
+              | undefined;
+            statusLog?.forEach((e) => {
+              if (e.timestamp == null) e.timestamp = now;
+            });
+            const roleLog = state.roleChangeLog as
+              | Array<Record<string, unknown>>
+              | undefined;
+            roleLog?.forEach((e) => {
+              if (e.timestamp == null) e.timestamp = now;
+            });
+          }
+          // v1→v2: roleTemplates now persisted — merge handled in onRehydrateStorage
+          return state as unknown as GameStore;
+        } catch {
+          return getInitialState();
         }
-        return state as unknown as GameStore;
       },
       onRehydrateStorage: () => {
-        return (_state, error) => {
+        return (state, error) => {
           if (error) {
             console.error("Zustand rehydration failed:", error);
-            const reset = confirm(
-              "Dữ liệu game bị lỗi. Reset để tiếp tục?\n\n(OK = Reset, Cancel = Giữ nguyên)",
-            );
-            if (reset) {
-              localStorage.removeItem("werewolf-game");
-              window.location.reload();
+            const resetKey = "werewolf-reset-guard";
+            if (sessionStorage.getItem(resetKey)) {
+              console.error("Reset already attempted this session, skipping");
+              sessionStorage.removeItem(resetKey);
+              return;
             }
+            sessionStorage.setItem(resetKey, "1");
+            localStorage.removeItem("werewolf-game");
+            window.location.reload();
+            return;
+          }
+          // Merge persisted roleTemplates with current defaults
+          if (state) {
+            const merged = mergeRoleTemplates(
+              state.roleTemplates,
+              DEFAULT_ROLES,
+            );
+            useGameStore.setState({ roleTemplates: merged });
           }
         };
       },
@@ -420,6 +540,7 @@ export const useGameStore = create<GameStore>()(
         step: state.step,
         playerCount: state.playerCount,
         players: state.players,
+        roleTemplates: state.roleTemplates,
         roles: state.roles,
         actionLog: state.actionLog,
         statusChangeLog: state.statusChangeLog,

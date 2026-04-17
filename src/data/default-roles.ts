@@ -11,7 +11,7 @@ export const DEFAULT_ROLES: RoleTemplate[] = [
   ...WOLF_ROLES,
   ...VILLAGER_ROLES,
   ...THIRD_PARTY_ROLES,
-];
+].map((r) => ({ ...r, version: r.version ?? 1 }));
 
 export const INITIAL_ROLE_IDS = [
   "b_wolf",

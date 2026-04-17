@@ -136,7 +136,7 @@ export function HistorySheet({ isOpen, onClose }: HistorySheetProps) {
               <span className="font-bold text-text-secondary">
                 {pName(action.sourceId)}
               </span>
-              <span className="text-[7px] text-gray-400 mx-2">
+              <span className="text-[7px] text-text-muted mx-2">
                 <ArrowRight size={7} />
               </span>
               <span className={`font-black ${col.textBright}`}>
@@ -144,7 +144,7 @@ export function HistorySheet({ isOpen, onClose }: HistorySheetProps) {
               </span>
               {action.targetId !== action.sourceId && (
                 <>
-                  <span className="text-[7px] text-gray-400 px-1.5">
+                  <span className="text-[7px] text-text-muted px-1.5">
                     <ArrowRight size={7} />
                   </span>
                   <span className="font-bold text-text-secondary">
@@ -160,7 +160,7 @@ export function HistorySheet({ isOpen, onClose }: HistorySheetProps) {
               <button
                 onClick={() => undoAction(action.id)}
                 className="w-5 h-5 rounded-full bg-red-900/40 text-red-500 inline-flex items-center justify-center hover:bg-red-800/60 transition"
-                aria-label="Undo"
+                aria-label={t("game.undo")}
               >
                 <Undo2 size={10} />
               </button>

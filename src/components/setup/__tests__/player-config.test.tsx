@@ -10,6 +10,7 @@ vi.mock("react-i18next", () => ({
     t: (key: string, fallback?: string) => fallback || key,
     i18n: { language: "vi", changeLanguage: vi.fn() },
   }),
+  initReactI18next: { type: "3rdParty", init: vi.fn() },
 }));
 
 describe("PlayerConfig", () => {

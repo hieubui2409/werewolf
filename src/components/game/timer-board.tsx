@@ -1,4 +1,4 @@
-import { memo, useEffect } from "react";
+import { memo, useEffect, type MutableRefObject } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Play,
@@ -11,8 +11,11 @@ import {
   Settings,
   Drama,
   Wand2,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useTimer } from "../../hooks/use-timer";
+import { useGameStore } from "../../store/game-store";
 import type { TimerSettings } from "../../types/game";
 
 interface TimerBoardProps {
@@ -21,6 +24,9 @@ interface TimerBoardProps {
   onOpenModal: (modal: "history" | "night" | "settings") => void;
   onOpenAssign: () => void;
   onOpenSkill: () => void;
+  timerStartRef?: MutableRefObject<
+    ((seconds: number, type: "debate" | "judgment") => void) | null
+  >;
 }
 
 export const TimerBoard = memo(function TimerBoard({
@@ -29,25 +35,40 @@ export const TimerBoard = memo(function TimerBoard({
   onOpenModal,
   onOpenAssign,
   onOpenSkill,
+  timerStartRef,
 }: TimerBoardProps) {
   const { t } = useTranslation();
   const { timer, start, togglePause, stop } = useTimer();
+  const muted = useGameStore((s) => s.timerSettings.muted);
+  const setTimerSettings = useGameStore((s) => s.setTimerSettings);
+  const toggleMute = () => setTimerSettings({ ...settings, muted: !muted });
 
   useEffect(() => {
     if (!timer.active) return;
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") stop();
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        stop();
+      }
     };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+    document.addEventListener("keydown", handleEscape, { capture: true });
+    return () =>
+      document.removeEventListener("keydown", handleEscape, { capture: true });
   }, [timer.active, stop]);
+
+  useEffect(() => {
+    if (timerStartRef) timerStartRef.current = start;
+    return () => {
+      if (timerStartRef) timerStartRef.current = null;
+    };
+  }, [start, timerStartRef]);
 
   return (
     <>
       {/* Fullscreen timer overlay */}
       {timer.active && (
         <div
-          className="fixed inset-0 z-[100] bg-bg-app/95 backdrop-blur-md flex flex-col items-center justify-center p-6"
+          className={`fixed inset-0 z-[100] bg-bg-app/95 backdrop-blur-md flex flex-col items-center justify-center p-6 ${timer.finished ? "timer-flash" : ""}`}
           role="status"
           aria-live="polite"
         >
@@ -66,11 +87,11 @@ export const TimerBoard = memo(function TimerBoard({
               .padStart(2, "0")}
             :{(timer.value % 60).toString().padStart(2, "0")}
           </div>
-          <div className="flex gap-6 w-full max-w-sm">
+          <div className="flex gap-4 w-full max-w-md">
             <button
               onClick={togglePause}
               className="flex-1 py-5 bg-bg-elevated border-2 border-border-default rounded-[2rem] shadow-xl flex items-center justify-center active:scale-95 transition"
-              aria-label={timer.paused ? "Resume" : "Pause"}
+              aria-label={timer.paused ? t("common.resume") : t("common.pause")}
             >
               {timer.paused ? (
                 <Play className="text-emerald-400" size={28} />
@@ -79,9 +100,20 @@ export const TimerBoard = memo(function TimerBoard({
               )}
             </button>
             <button
+              onClick={toggleMute}
+              className="py-5 px-6 bg-bg-elevated border-2 border-border-default rounded-[2rem] shadow-xl flex items-center justify-center active:scale-95 transition"
+              aria-label={muted ? t("game.unmute") : t("game.mute")}
+            >
+              {muted ? (
+                <VolumeX className="text-text-muted" size={24} />
+              ) : (
+                <Volume2 className="text-indigo-400" size={24} />
+              )}
+            </button>
+            <button
               onClick={stop}
               className="flex-1 py-5 bg-red-900 border-2 border-red-600 rounded-[2rem] shadow-xl flex items-center justify-center active:scale-95 transition"
-              aria-label="Stop"
+              aria-label={t("common.stop")}
             >
               <Square className="text-red-300" size={28} />
             </button>

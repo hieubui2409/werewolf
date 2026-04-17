@@ -3,7 +3,8 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import "./i18n";
 import App from "./App.tsx";
-import { preloadSounds } from "./utils/sounds";
+import { preloadSounds, initMuteSync } from "./utils/sounds";
+import { useGameStore } from "./store/game-store";
 import { registerSW } from "virtual:pwa-register";
 
 // H3: Polyfill requestIdleCallback for Safari
@@ -12,6 +13,12 @@ const ric =
 
 // Preload sounds after initial render
 ric(() => preloadSounds());
+
+// Sync mute state from Zustand → sounds module
+initMuteSync((cb) => {
+  cb(useGameStore.getState().timerSettings.muted);
+  return useGameStore.subscribe((state) => cb(state.timerSettings.muted));
+});
 
 // U8: PWA update via themed BottomSheet (replaces native confirm)
 const updateSW = registerSW({

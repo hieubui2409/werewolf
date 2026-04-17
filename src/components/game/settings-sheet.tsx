@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Settings, Trash2 } from "lucide-react";
+import { Settings, Trash2, Volume2, VolumeX } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import { BottomSheet } from "../common/bottom-sheet";
 import type { CardViewMode } from "../../types/game";
@@ -116,6 +116,39 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
             aria-valuetext={`${timerSettings.judgment} seconds`}
             className="w-full accent-red-600"
           />
+        </div>
+
+        {/* Mute Sounds */}
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-bold text-text-secondary uppercase tracking-wider">
+            {t("settings.muteSounds")}
+          </label>
+          <button
+            onClick={() =>
+              setTimerSettings({
+                ...timerSettings,
+                muted: !timerSettings.muted,
+              })
+            }
+            className={`w-12 h-7 rounded-full transition-colors relative ${
+              timerSettings.muted ? "bg-red-600" : "bg-bg-elevated"
+            }`}
+            role="switch"
+            aria-checked={timerSettings.muted}
+            aria-label={t("settings.muteSounds")}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-transform flex items-center justify-center ${
+                timerSettings.muted ? "translate-x-5" : "translate-x-0"
+              }`}
+            >
+              {timerSettings.muted ? (
+                <VolumeX size={12} className="text-red-600" />
+              ) : (
+                <Volume2 size={12} className="text-text-muted" />
+              )}
+            </span>
+          </button>
         </div>
 
         {/* Language */}
