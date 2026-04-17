@@ -1,30 +1,30 @@
 if (!self.define) {
   let e,
     i = {};
-  const n = (n, s) => (
-    (n = new URL(n + ".js", s).href),
-    i[n] ||
+  const s = (s, n) => (
+    (s = new URL(s + ".js", n).href),
+    i[s] ||
       new Promise((i) => {
         if ("document" in self) {
           const e = document.createElement("script");
-          ((e.src = n), (e.onload = i), document.head.appendChild(e));
-        } else ((e = n), importScripts(n), i());
+          ((e.src = s), (e.onload = i), document.head.appendChild(e));
+        } else ((e = s), importScripts(s), i());
       }).then(() => {
-        let e = i[n];
-        if (!e) throw new Error(`Module ${n} didn’t register its module`);
+        let e = i[s];
+        if (!e) throw new Error(`Module ${s} didn’t register its module`);
         return e;
       })
   );
-  self.define = (s, r) => {
-    const o =
+  self.define = (n, o) => {
+    const r =
       e ||
       ("document" in self ? document.currentScript.src : "") ||
       location.href;
-    if (i[o]) return;
+    if (i[r]) return;
     let f = {};
-    const t = (e) => n(e, o),
-      d = { module: { uri: o }, exports: f, require: t };
-    i[o] = Promise.all(s.map((e) => d[e] || t(e))).then((e) => (r(...e), f));
+    const t = (e) => s(e, r),
+      d = { module: { uri: r }, exports: f, require: t };
+    i[r] = Promise.all(n.map((e) => d[e] || t(e))).then((e) => (o(...e), f));
   };
 }
 define(["./workbox-1ef09536"], function (e) {
@@ -34,7 +34,7 @@ define(["./workbox-1ef09536"], function (e) {
   }),
     e.precacheAndRoute(
       [
-        { url: "index.html", revision: "f1445330b7abfd1518c73b971050a58e" },
+        { url: "index.html", revision: "6730d05a8109d83ce29fc330cc3650da" },
         { url: "icons.svg", revision: "3b4fcfcf393eca4d264dca4a4663bc37" },
         { url: "favicon.svg", revision: "7e840862161341271697daa99a40d76b" },
         {
@@ -70,8 +70,8 @@ define(["./workbox-1ef09536"], function (e) {
           revision: "089e175e5cfe9e7e2a0a719196038fb9",
         },
         { url: "assets/workbox-window.prod.es5-Bq4GJJid.js", revision: null },
-        { url: "assets/index-ppZ2Q93G.css", revision: null },
-        { url: "assets/index-CwyGnvaE.js", revision: null },
+        { url: "assets/index-CuuBu2Uo.css", revision: null },
+        { url: "assets/index-4L4RQw5g.js", revision: null },
         {
           url: "manifest.webmanifest",
           revision: "472d9d354c8e34d3947636d64100d3a2",

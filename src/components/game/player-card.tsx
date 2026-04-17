@@ -256,7 +256,7 @@ export const PlayerCard = memo(function PlayerCard({
   // Name face (front)
   const nameFace = (
     <div
-      className={`flip-face p-3 bg-bg-card border ${col.border} rounded-xl card-pattern-mixed`}
+      className={`flip-face p-3 bg-bg-card border border-border-default rounded-xl card-pattern-mixed`}
     >
       {!player.alive && <DeathWatermark />}
       <div className="flex justify-between items-start mb-2">
@@ -270,13 +270,6 @@ export const PlayerCard = memo(function PlayerCard({
         >
           {player.name}
         </div>
-        {player.roleId && (
-          <div
-            className={`text-[8px] font-bold uppercase tracking-wider mt-1 ${col.text}`}
-          >
-            {FACTION_EMOJI[faction]} {t(`factions.${faction}`)}
-          </div>
-        )}
       </div>
       <ActionChips
         actions={actions}
