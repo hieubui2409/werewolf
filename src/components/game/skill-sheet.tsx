@@ -36,6 +36,7 @@ interface WizardState {
   sourceId: number | null;
   targets: number[];
   possibleSources: { id: number; name: string; alive: boolean }[];
+  existingActionId: string | null;
 }
 
 interface PendingConfirm {
@@ -53,6 +54,7 @@ const INITIAL_STATE: WizardState = {
   sourceId: null,
   targets: [],
   possibleSources: [],
+  existingActionId: null,
 };
 
 export function SkillSheet({
@@ -63,7 +65,9 @@ export function SkillSheet({
   const { t } = useTranslation();
   const sortedRoles = useSortedRoles();
   const players = useGameStore((s) => s.players);
+  const actionLog = useGameStore((s) => s.actionLog);
   const executeAction = useGameStore((s) => s.executeAction);
+  const undoAction = useGameStore((s) => s.undoAction);
   const checkCanExecute = useCanExecute();
   const [wizard, setWizard] = useState<WizardState>(INITIAL_STATE);
   const [expandedRoleId, setExpandedRoleId] = useState<string | null>(null);
@@ -72,6 +76,24 @@ export function SkillSheet({
   );
   const playersRef = useRef(players);
   playersRef.current = players;
+  const actionLogRef = useRef(actionLog);
+  actionLogRef.current = actionLog;
+
+  const findExistingAction = useCallback(
+    (sourceId: number, abilityId: string) => {
+      const existing = actionLogRef.current.filter(
+        (a) => a.sourceId === sourceId && a.abilityId === abilityId,
+      );
+      if (existing.length === 0) return null;
+      return {
+        actionId: existing[0].id,
+        targets: existing
+          .filter((a) => a.targetId !== a.sourceId)
+          .map((a) => a.targetId),
+      };
+    },
+    [],
+  );
 
   const handleClose = useCallback(() => {
     setWizard(INITIAL_STATE);
@@ -81,33 +103,39 @@ export function SkillSheet({
   }, [onClose]);
 
   // E6 FIX: Remove p.alive filter — let canExecute handle dead-source
-  const selectAbility = useCallback((ability: Ability, roleId: string) => {
-    const capable = playersRef.current.filter((p) => p.roleId === roleId);
-    if (capable.length === 0) return;
-    if (capable.length === 1) {
-      setWizard({
-        step: 3,
-        ability,
-        roleId,
-        sourceId: capable[0].id,
-        targets: [],
-        possibleSources: [],
-      });
-    } else {
-      setWizard({
-        step: 2,
-        ability,
-        roleId,
-        sourceId: null,
-        targets: [],
-        possibleSources: capable.map((p) => ({
-          id: p.id,
-          name: p.name,
-          alive: p.alive,
-        })),
-      });
-    }
-  }, []);
+  const selectAbility = useCallback(
+    (ability: Ability, roleId: string) => {
+      const capable = playersRef.current.filter((p) => p.roleId === roleId);
+      if (capable.length === 0) return;
+      if (capable.length === 1) {
+        const existing = findExistingAction(capable[0].id, ability.id);
+        setWizard({
+          step: 3,
+          ability,
+          roleId,
+          sourceId: capable[0].id,
+          targets: existing?.targets ?? [],
+          possibleSources: [],
+          existingActionId: existing?.actionId ?? null,
+        });
+      } else {
+        setWizard({
+          step: 2,
+          ability,
+          roleId,
+          sourceId: null,
+          targets: [],
+          possibleSources: capable.map((p) => ({
+            id: p.id,
+            name: p.name,
+            alive: p.alive,
+          })),
+          existingActionId: null,
+        });
+      }
+    },
+    [findExistingAction],
+  );
 
   const initialContextRef = useRef(initialContext);
   initialContextRef.current = initialContext;
@@ -121,7 +149,18 @@ export function SkillSheet({
   }, [isOpen, selectAbility]);
 
   const selectSource = (sourceId: number) => {
-    setWizard((prev) => ({ ...prev, step: 3, sourceId }));
+    setWizard((prev) => {
+      const existing = prev.ability
+        ? findExistingAction(sourceId, prev.ability.id)
+        : null;
+      return {
+        ...prev,
+        step: 3,
+        sourceId,
+        targets: existing?.targets ?? [],
+        existingActionId: existing?.actionId ?? null,
+      };
+    });
   };
 
   const toggleTarget = (targetId: number) => {
@@ -156,6 +195,11 @@ export function SkillSheet({
       }
     }
 
+    // Undo existing action for this source+ability before re-executing
+    if (wizard.existingActionId) {
+      undoAction(wizard.existingActionId);
+    }
+
     executeAction(
       wizard.sourceId,
       wizard.ability,
@@ -166,7 +210,6 @@ export function SkillSheet({
     setWizard(INITIAL_STATE);
     setExpandedRoleId(null);
     setPendingConfirm(null);
-    onClose();
   };
 
   const confirm = () => doExecute(wizard.targets);
@@ -184,7 +227,6 @@ export function SkillSheet({
     setWizard(INITIAL_STATE);
     setExpandedRoleId(null);
     setPendingConfirm(null);
-    onClose();
   };
 
   return (
@@ -295,19 +337,21 @@ export function SkillSheet({
                           disabled={allExhausted}
                           className={`w-full text-left px-3 py-2 rounded-lg border transition active:scale-[0.98] ${allExhausted ? "opacity-40 cursor-not-allowed bg-bg-elevated border-border-default" : "bg-bg-card border-border-default hover:bg-bg-elevated"}`}
                         >
-                          <span
-                            className={`font-bold text-sm ${allExhausted ? "text-text-muted line-through" : "text-text-primary"}`}
-                          >
-                            {tr(t, ab.nameKey, ab.name)}
-                          </span>
-                          <span className="ml-2 text-[10px] text-text-muted">
-                            {ab.type === "nightly" ? (
-                              <Moon size={10} />
-                            ) : (
-                              `${ab.max}x`
-                            )}{" "}
-                            <Crosshair size={10} className="ml-1" />{" "}
-                            {ab.targetCount}
+                          <span className="flex items-center gap-2">
+                            <span
+                              className={`font-bold text-sm ${allExhausted ? "text-text-muted line-through" : "text-text-primary"}`}
+                            >
+                              {tr(t, ab.nameKey, ab.name)}
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-[10px] text-text-muted">
+                              {ab.type === "nightly" ? (
+                                <Moon size={10} />
+                              ) : (
+                                <span>{ab.max}x</span>
+                              )}
+                              <Crosshair size={10} />
+                              <span>{ab.targetCount}</span>
+                            </span>
                           </span>
                         </button>
                       );

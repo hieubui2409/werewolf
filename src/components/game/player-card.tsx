@@ -48,9 +48,11 @@ const MAX_VISIBLE_CHIPS = 2;
 function ActionChips({
   actions,
   onUndoAction,
+  onOverflowClick,
 }: {
   actions: ActionLog[];
   onUndoAction: (id: string, e: React.MouseEvent) => void;
+  onOverflowClick?: (e: React.MouseEvent) => void;
 }) {
   const { t } = useTranslation();
   if (actions.length === 0) return null;
@@ -112,9 +114,15 @@ function ActionChips({
           );
         })}
         {hasOverflow && (
-          <div className="text-[9px] text-text-muted font-bold w-full text-center">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onOverflowClick?.(e);
+            }}
+            className="text-[9px] text-text-muted font-bold w-full text-center hover:text-text-primary transition"
+          >
             +{actions.length - MAX_VISIBLE_CHIPS}
-          </div>
+          </button>
         )}
       </div>
     </div>
@@ -186,7 +194,7 @@ export const PlayerCard = memo(function PlayerCard({
   // "both" mode — combined view, no flip
   if (viewMode === "both") {
     return (
-      <div className="w-full min-h-[170px] md:min-h-[180px] lg:min-h-[190px]">
+      <div className="w-full h-full min-h-[140px] md:min-h-[180px] lg:min-h-[190px]">
         <div
           className={`w-full h-full p-3 flex flex-col rounded-2xl relative border ${col.border} bg-bg-card shadow-card overflow-y-auto hide-scrollbar card-pattern-${faction} ${HOVER_GLOW[faction] ?? ""} transition-shadow ${deadClass} ${animClass}`}
           onAnimationEnd={handleAnimEnd}
@@ -197,7 +205,7 @@ export const PlayerCard = memo(function PlayerCard({
               {player.id}
             </span>
             <div
-              className={`text-[11px] font-black uppercase tracking-widest truncate ml-2 text-right flex-1 ${col.text}`}
+              className={`text-[11px] font-black uppercase tracking-widest truncate ml-2 text-center flex-1 ${col.text}`}
             >
               {FACTION_EMOJI[faction]} {roleName}
             </div>
@@ -235,7 +243,11 @@ export const PlayerCard = memo(function PlayerCard({
               })}
             </div>
           )}
-          <ActionChips actions={actions} onUndoAction={onUndoAction} />
+          <ActionChips
+            actions={actions}
+            onUndoAction={onUndoAction}
+            onOverflowClick={(e) => onSelect(player.id, e)}
+          />
         </div>
       </div>
     );
@@ -266,7 +278,11 @@ export const PlayerCard = memo(function PlayerCard({
           </div>
         )}
       </div>
-      <ActionChips actions={actions} onUndoAction={onUndoAction} />
+      <ActionChips
+        actions={actions}
+        onUndoAction={onUndoAction}
+        onOverflowClick={(e) => onSelect(player.id, e)}
+      />
       <button
         onClick={(e) => onSelect(player.id, e)}
         className="absolute top-2 right-2 text-text-muted hover:text-text-primary p-2"
@@ -328,7 +344,11 @@ export const PlayerCard = memo(function PlayerCard({
           })
         )}
       </div>
-      <ActionChips actions={actions} onUndoAction={onUndoAction} />
+      <ActionChips
+        actions={actions}
+        onUndoAction={onUndoAction}
+        onOverflowClick={(e) => onSelect(player.id, e)}
+      />
     </div>
   );
 
@@ -337,7 +357,7 @@ export const PlayerCard = memo(function PlayerCard({
 
   return (
     <div
-      className={`flip-container w-full min-h-[170px] md:min-h-[180px] lg:min-h-[190px] cursor-pointer ${showFlipped ? "flipped" : ""} ${deadClass} ${animClass}`}
+      className={`flip-container w-full h-full min-h-[140px] md:min-h-[180px] lg:min-h-[190px] cursor-pointer ${showFlipped ? "flipped" : ""} ${deadClass} ${animClass}`}
       onAnimationEnd={handleAnimEnd}
       onClick={() => onFlip(player.id)}
       role="button"

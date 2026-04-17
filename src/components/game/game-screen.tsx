@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Drama, Wand2, X as XIcon } from "lucide-react";
+import { Drama, Wand2 } from "lucide-react";
 import { useGameStore } from "../../store/game-store";
 import {
   useRoleMap,
@@ -107,26 +107,13 @@ export function GameScreen() {
     [],
   );
 
-  const [fabOpen, setFabOpen] = useState(false);
-  const toggleFab = useCallback(() => setFabOpen((prev) => !prev), []);
-  const handleFabAssign = useCallback(() => {
-    setFabOpen(false);
-    setModal("assign");
-  }, []);
-  const handleFabSkill = useCallback(() => {
-    setFabOpen(false);
-    setSkillContext(null);
-    setModal("skill");
-  }, []);
-
   // U6: Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        const hasUI = modal || selectedPlayer !== null || fabOpen;
+        const hasUI = modal || selectedPlayer !== null;
         if (modal) setModal(null);
         if (selectedPlayer !== null) setSelectedPlayer(null);
-        if (fabOpen) setFabOpen(false);
         if (hasUI) e.stopImmediatePropagation();
         return;
       }
@@ -170,7 +157,6 @@ export function GameScreen() {
   }, [
     modal,
     selectedPlayer,
-    fabOpen,
     actionLog,
     redoStack,
     undoAction,
@@ -209,11 +195,11 @@ export function GameScreen() {
 
       {/* Main player grid */}
       <main className="flex-1 overflow-y-auto min-h-0 p-2 md:p-4 pb-20 md:pb-4">
-        <div className="grid grid-cols-2 landscape:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3 items-start content-start">
+        <div className="grid grid-cols-2 landscape:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3 content-start">
           {sortedPlayers.map((player, index) => (
             <div
               key={player.id}
-              className="card-enter"
+              className="card-enter h-full"
               style={{ animationDelay: `${index * 40}ms` }}
             >
               <PlayerCard
@@ -232,39 +218,21 @@ export function GameScreen() {
         </div>
       </main>
 
-      {/* Expandable FAB — mobile only */}
-      <div className="fixed bottom-4 right-4 z-20 md:hidden flex flex-col-reverse items-end gap-2">
-        {fabOpen && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm -z-10"
-              onClick={toggleFab}
-            />
-            <button
-              onClick={handleFabSkill}
-              className="fab-item-enter px-4 py-2.5 bg-cta text-white font-black rounded-2xl shadow-elevated active:scale-95 transition uppercase text-xs flex items-center gap-1.5"
-            >
-              <Wand2 size={14} />
-              {t("game.useSkill")}
-            </button>
-            <button
-              onClick={handleFabAssign}
-              className="fab-item-enter px-4 py-2.5 bg-success text-white font-black rounded-2xl shadow-elevated active:scale-95 transition uppercase text-xs flex items-center gap-1.5"
-            >
-              <Drama size={14} />
-              {t("game.assignRole")}
-            </button>
-          </>
-        )}
+      {/* Fixed action buttons — mobile only */}
+      <div className="fixed bottom-4 right-4 z-20 md:hidden flex flex-col items-center gap-2">
         <button
-          onClick={toggleFab}
-          className={`w-14 h-14 rounded-full bg-cta text-white shadow-elevated flex items-center justify-center active:scale-95 transition-transform ${fabOpen ? "rotate-45" : ""}`}
-          aria-label={
-            fabOpen ? t("common.close", "Đóng") : t("game.actions", "Hành động")
-          }
-          aria-expanded={fabOpen}
+          onClick={openAssign}
+          className="w-12 h-12 rounded-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-elevated flex items-center justify-center active:scale-95 transition"
+          aria-label={t("game.assignRole")}
         >
-          {fabOpen ? <XIcon size={24} /> : <Wand2 size={24} />}
+          <Drama size={20} />
+        </button>
+        <button
+          onClick={openSkillFresh}
+          className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-elevated flex items-center justify-center active:scale-95 transition"
+          aria-label={t("game.useSkill")}
+        >
+          <Wand2 size={20} />
         </button>
       </div>
 

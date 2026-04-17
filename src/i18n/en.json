@@ -8,7 +8,7 @@
     "createCustomRole": "CREATE CUSTOM ROLE",
     "confirmDeleteRole": "Delete role {{name}}? Assigned players will lose their role.",
     "noTarget": "0",
-    "willBeVillager": "Will be Villager",
+    "willBeVillager": "duplicate roles or {{count}} will be Villager",
     "nightly": "Nightly",
     "limited": "Limited",
     "addAbility": "Add Ability",

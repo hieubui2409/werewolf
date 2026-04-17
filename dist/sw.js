@@ -1,30 +1,30 @@
 if (!self.define) {
   let e,
     i = {};
-  const s = (s, n) => (
-    (s = new URL(s + ".js", n).href),
-    i[s] ||
+  const n = (n, s) => (
+    (n = new URL(n + ".js", s).href),
+    i[n] ||
       new Promise((i) => {
         if ("document" in self) {
           const e = document.createElement("script");
-          ((e.src = s), (e.onload = i), document.head.appendChild(e));
-        } else ((e = s), importScripts(s), i());
+          ((e.src = n), (e.onload = i), document.head.appendChild(e));
+        } else ((e = n), importScripts(n), i());
       }).then(() => {
-        let e = i[s];
-        if (!e) throw new Error(`Module ${s} didn’t register its module`);
+        let e = i[n];
+        if (!e) throw new Error(`Module ${n} didn’t register its module`);
         return e;
       })
   );
-  self.define = (n, r) => {
+  self.define = (s, r) => {
     const o =
       e ||
       ("document" in self ? document.currentScript.src : "") ||
       location.href;
     if (i[o]) return;
     let f = {};
-    const t = (e) => s(e, o),
+    const t = (e) => n(e, o),
       d = { module: { uri: o }, exports: f, require: t };
-    i[o] = Promise.all(n.map((e) => d[e] || t(e))).then((e) => (r(...e), f));
+    i[o] = Promise.all(s.map((e) => d[e] || t(e))).then((e) => (r(...e), f));
   };
 }
 define(["./workbox-1ef09536"], function (e) {
@@ -34,7 +34,7 @@ define(["./workbox-1ef09536"], function (e) {
   }),
     e.precacheAndRoute(
       [
-        { url: "index.html", revision: "bf01764be9ebf1b542aa2b73ffda8443" },
+        { url: "index.html", revision: "f1445330b7abfd1518c73b971050a58e" },
         { url: "icons.svg", revision: "3b4fcfcf393eca4d264dca4a4663bc37" },
         { url: "favicon.svg", revision: "7e840862161341271697daa99a40d76b" },
         {
@@ -70,8 +70,8 @@ define(["./workbox-1ef09536"], function (e) {
           revision: "089e175e5cfe9e7e2a0a719196038fb9",
         },
         { url: "assets/workbox-window.prod.es5-Bq4GJJid.js", revision: null },
-        { url: "assets/index-XPB6ZU3v.js", revision: null },
-        { url: "assets/index-DmGU9EMM.css", revision: null },
+        { url: "assets/index-ppZ2Q93G.css", revision: null },
+        { url: "assets/index-CwyGnvaE.js", revision: null },
         {
           url: "manifest.webmanifest",
           revision: "472d9d354c8e34d3947636d64100d3a2",

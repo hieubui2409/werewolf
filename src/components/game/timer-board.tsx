@@ -121,72 +121,72 @@ export const TimerBoard = memo(function TimerBoard({
         </div>
       )}
 
-      {/* Mobile: compact single row */}
+      {/* Mobile: icon row + turn footer */}
       <div className="md:hidden bg-bg-card border-b border-border-default shadow-sm shrink-0 z-10">
-        <div className="flex items-center gap-1 px-2 py-1.5 overflow-x-auto hide-scrollbar snap-x snap-mandatory">
+        <div className="flex items-center justify-around px-2 pt-2 pb-1">
           <button
             onClick={() => start(settings.debate, "debate")}
-            className="shrink-0 py-1.5 px-3 rounded-lg font-black uppercase text-[10px] flex items-center gap-1 bg-gradient-to-r from-orange-500 to-orange-700 text-white shadow-lg active:scale-95 transition snap-start"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 hover:text-orange-300 hover:bg-bg-elevated active:scale-95 transition"
+            aria-label={t("game.debate")}
           >
-            <MessageSquare size={12} /> {t("game.debate")}
+            <MessageSquare size={18} />
           </button>
           <button
             onClick={() => start(settings.judgment, "judgment")}
-            className="shrink-0 py-1.5 px-3 rounded-lg font-black uppercase text-[10px] flex items-center gap-1 bg-gradient-to-r from-red-600 to-red-800 text-white shadow-lg active:scale-95 transition snap-start"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-bg-elevated active:scale-95 transition"
+            aria-label={t("game.judgment")}
           >
-            <Gavel size={12} /> {t("game.judgment")}
-          </button>
-
-          <div className="shrink-0 px-2 py-1 bg-indigo-600/20 rounded-full border border-indigo-500/30 snap-start">
-            <span className="text-[10px] font-black text-indigo-400 uppercase whitespace-nowrap">
-              {t("game.turn", { count: nightCount })}
-            </span>
-          </div>
-
-          <button
-            onClick={() => onOpenModal("history")}
-            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-elevated transition snap-start"
-            aria-label={t("game.history")}
-          >
-            <BookOpen size={16} />
+            <Gavel size={18} />
           </button>
           <button
             onClick={() => onOpenModal("night")}
-            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-emerald-400 hover:text-emerald-300 hover:bg-bg-elevated transition snap-start"
+            className="relative w-10 h-10 rounded-xl flex items-center justify-center text-emerald-400 hover:text-emerald-300 hover:bg-bg-elevated active:scale-95 transition"
             aria-label={t("game.nextNight")}
           >
-            <Moon size={16} className="moon-glow" />
+            <Moon size={18} />
+            <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-emerald-500 text-white text-[9px] font-black flex items-center justify-center">
+              {nightCount}
+            </span>
+          </button>
+          <button
+            onClick={() => onOpenModal("history")}
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-amber-400 hover:text-amber-300 hover:bg-bg-elevated active:scale-95 transition"
+            aria-label={t("game.history")}
+          >
+            <BookOpen size={18} />
           </button>
           <button
             onClick={() => onOpenModal("settings")}
-            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-elevated transition snap-start"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-indigo-400 hover:text-indigo-300 hover:bg-bg-elevated active:scale-95 transition"
             aria-label={t("settings.title")}
           >
-            <Settings size={16} />
+            <Settings size={18} />
           </button>
         </div>
       </div>
 
-      {/* Desktop: sidebar */}
-      <div className="hidden md:flex md:flex-col bg-bg-card border-r-2 border-border-default p-4 z-10 shadow-sm shrink-0">
-        <div className="flex flex-col gap-2 w-full mb-2">
+      {/* Desktop: sidebar — 3 groups: top (timers), middle (nav), bottom (actions) */}
+      <div className="hidden md:flex md:flex-col justify-between bg-bg-card border-r-2 border-border-default p-4 z-10 shadow-sm shrink-0">
+        <div className="flex flex-col gap-2 w-full">
           <button
             onClick={() => start(settings.debate, "debate")}
-            className="py-2 w-full rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-1 bg-gradient-to-r from-orange-500 to-orange-700 text-white shadow-lg active:scale-95 transition"
+            className="py-2 px-4 w-full rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-1 bg-gradient-to-r from-orange-500 to-orange-700 text-white shadow-lg active:scale-95 transition"
           >
             <MessageSquare size={14} /> {t("game.debate")}
           </button>
           <button
             onClick={() => start(settings.judgment, "judgment")}
-            className="py-2 w-full rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-1 bg-gradient-to-r from-red-600 to-red-800 text-white shadow-lg active:scale-95 transition"
+            className="py-2 px-4 w-full rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-1 bg-gradient-to-r from-red-600 to-red-800 text-white shadow-lg active:scale-95 transition"
           >
             <Gavel size={14} /> {t("game.judgment")}
           </button>
         </div>
 
-        <div className="flex flex-col items-center gap-3 border-y-2 border-border-default py-3">
-          <div className="text-xs font-black text-indigo-400 uppercase tracking-wide">
-            {t("game.turn", { count: nightCount })}
+        <div className="flex flex-col items-center gap-3 py-3">
+          <div className="px-3 py-1 bg-indigo-600/20 rounded-full border border-indigo-500/30">
+            <span className="text-xs font-black text-indigo-400 uppercase tracking-wide whitespace-nowrap">
+              {t("game.turn", { count: nightCount })}
+            </span>
           </div>
           <div className="w-8 h-0.5 bg-bg-elevated rounded-full" />
           <div className="flex flex-col items-center gap-4">
@@ -223,17 +223,17 @@ export const TimerBoard = memo(function TimerBoard({
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 w-full mt-2">
+        <div className="flex flex-col gap-2 w-full">
           <button
             onClick={onOpenAssign}
-            className="w-full py-2 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-black rounded-xl shadow-lg active:scale-95 transition uppercase text-[10px] flex items-center justify-center gap-1"
+            className="w-full py-2 px-4 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-black rounded-xl shadow-lg active:scale-95 transition uppercase text-[10px] flex items-center justify-center gap-1"
           >
             <Drama size={14} />
             {t("game.assignRole")}
           </button>
           <button
             onClick={onOpenSkill}
-            className="w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black rounded-xl shadow-lg active:scale-95 transition uppercase text-[10px] flex items-center justify-center gap-1"
+            className="w-full py-2 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black rounded-xl shadow-lg active:scale-95 transition uppercase text-[10px] flex items-center justify-center gap-1"
           >
             <Wand2 size={14} />
             {t("game.useSkill")}

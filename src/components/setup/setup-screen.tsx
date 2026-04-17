@@ -124,8 +124,10 @@ export function SetupScreen() {
             <AlertTriangle size={14} className="text-amber-400 shrink-0" />
             <p className="text-[11px] text-amber-400 font-bold">
               {roles.length} {t("setup.roles")} / {playerCount}{" "}
-              {t("setup.playerCount")} — {playerCount - roles.length}{" "}
-              {t("setup.willBeVillager", "sẽ là Dân Làng")}
+              {t("setup.playerCount")} —{" "}
+              {t("setup.willBeVillager", {
+                count: Math.abs(playerCount - roles.length),
+              })}
             </p>
           </div>
         )}

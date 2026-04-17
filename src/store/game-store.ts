@@ -397,7 +397,7 @@ export const useGameStore = create<GameStore>()(
           return {
             gameHistory: [...s.gameHistory, newHistory],
             nightCount: s.nightCount + 1,
-            actionLog: s.actionLog.filter((a) => a.abilityType === "limited"),
+            actionLog: [],
             statusChangeLog: [],
             roleChangeLog: [],
             players: newPlayers,
